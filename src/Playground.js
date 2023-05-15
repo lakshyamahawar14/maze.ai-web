@@ -21,7 +21,6 @@ class KruskalMaze {
       let weight = Math.floor(Math.random() * 4) + 1;
       edge_weights.push([weight, x, y]);
     }
-    console.log("edge_weights:", edge_weights.length);
     return edge_weights;
   }
 
@@ -40,7 +39,6 @@ class KruskalMaze {
         legal_edges[y].push(x);
       }
     }
-    console.log("legal_edges:", Object.keys(legal_edges).length);
     return legal_edges;
   }
 
@@ -70,8 +68,6 @@ class KruskalMaze {
         }
       }
     }
-    console.log("nodes:", nodes.size);
-    console.log("edges:", edges.size);
     return [nodes, edges];
   }
 
@@ -120,8 +116,6 @@ class KruskalMaze {
       }
     }
   
-    console.log('maze: ', solution.size);
-    console.log('solution: ', solution);
     return solution;
   }
   
@@ -159,7 +153,6 @@ class KruskalMaze {
       }
     }
     edge_data.push(...this.entry_exit_edges);
-    console.log('edge_data: ', edge_data.length)
     return edge_data;
   }
 
@@ -191,8 +184,6 @@ class KruskalMaze {
       }
     }
   
-    console.log('maze_data: ', maze_data.length);
-    console.log('maze_data_: ', maze_data);
     return maze_data;
   }
   
@@ -287,7 +278,7 @@ function Playground() {
       [height, width],
       mazeData
     );
-    console.log("level_matrix: ", levelMatrix);
+
     setLevelMatrix(levelMatrix);
   };
 
@@ -406,8 +397,7 @@ function Playground() {
       alert("Please Fill Maze Size!");
       return;
     }
-    setMazeSize([inputSize, inputSize]);
-    console.log(mazeSize);
+    setMazeSize([parseInt(inputSize), parseInt(inputSize)]);
   };
 
   return (
