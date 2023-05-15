@@ -5,6 +5,7 @@ function Playground() {
   const canvasRef = useRef(null);
   const [lines, setLines] = useState([]);
   const [level_matrix, setLevelMatrix] = useState([]);
+  const [mazeSize, setMazeSize] = useState([25, 25]);
 
   const generateMaze = (height, width) => {
     const rows = 2*height-1
@@ -25,7 +26,6 @@ function Playground() {
         }
       }
     }
-    console.log('temp', temp_matrix)
     setLevelMatrix(temp_matrix)
   }
 
@@ -96,8 +96,8 @@ function Playground() {
   }, [level_matrix]);
 
   useEffect(() => {
-    generateMaze(25, 25)
-  }, []);
+    generateMaze(mazeSize[0], mazeSize[1])
+  }, [mazeSize]);
 
   useEffect(() => {
     addLines()
@@ -140,11 +140,30 @@ function Playground() {
     };
   }, [lines]);
 
+  const handleClick = () => {
+    const inputSize = document.getElementById('mazeSize').value
+    if(inputSize === ''){
+      alert('Please Fill Maze Size!')
+      return
+    }
+    setMazeSize([inputSize, inputSize])
+    console.log(mazeSize)
+  }
+
   return (
     <div
       ref={canvasRef}
-      className="playground h-[85vh] h-max-[85vh] w-full w-max-full flex justify-center items-center absolute"
-    ></div>
+      className="playground flex-col h-[85vh] h-max-[85vh] w-full w-max-full flex justify-center items-center absolute"
+    >
+    <div className='input mt-[50px]'>
+        <label htmlFor='mazeSize'>
+            Maze Size:
+            <input type='text' className='px-2 mx-4 outline-none w-[100px] bg-transparent border-b-2 border-[rgb(0,255,75)]' id='mazeSize' name='mazeSize' maxLength={2} placeholder='e.g. 25'>
+            </input>
+        </label>
+        <input type='button' value={'Generate'} className='cursor-pointer bg-[rgb(0,255,75)] text-[rgb(30,30,30)] px-2 rounded-sm hover:bg-[rgb(150,250,125)]' onClick={handleClick}></input>
+    </div>
+    </div>
   );
 }
 
