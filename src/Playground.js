@@ -301,14 +301,21 @@ function Playground({inputData}) {
     }
     const row_size = (level_matrix.length + 1) / 2;
     const col_size = (level_matrix[0].length + 1) / 2;
-    const offset = 18;
+    var offset = 18
+    if(X >= Y){
+      offset = (Math.floor(Y/row_size))*0.80;
+    }
+    else{
+      offset = (Math.floor(X/col_size))*0.80;
+    }
+
     const rows = 2 * row_size - 1;
     const cols = 2 * col_size - 1;
 
     var initialLines = [];
 
     var x = X / 2 - (offset / 2) * col_size;
-    var y = Y / 2 - offset - (offset/2)*(row_size);
+    var y = Y / 2 - (offset / 2)*(row_size);
 
     var i;
     for (i = 0; i < col_size; ++i) {
