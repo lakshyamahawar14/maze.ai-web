@@ -1,6 +1,5 @@
 import p5 from "p5";
 import { useEffect, useRef, useState, useCallback } from "react";
-import Input from "./Input";
 
 class KruskalMaze {
   constructor(colSize, rowSize) {
@@ -265,12 +264,21 @@ class KruskalMaze {
   }
 }
 
-function Playground() {
+function Playground({inputData}) {
   const canvasRef = useRef(null);
+
   const [mazeSize, setMazeSize] = useState([15, 15]);
   const [lines, setLines] = useState([]);
   const [level_matrix, setLevelMatrix] = useState([]);
-  const [requestID, setRequestID] = useState([]);
+  const [requestID, setRequestID] =   useState(1111);
+
+  useEffect(() => {
+    if(inputData.length !== 0){
+      setMazeSize(inputData[0]);
+      setRequestID(inputData[1]);
+    }
+  }, [inputData]);
+  
   
 
   const generateMaze = (height, width) => {
@@ -394,17 +402,11 @@ function Playground() {
     };
   }, [lines]);
 
-  const handleInputChange = (data) => {
-    setRequestID(data[1])
-    setMazeSize(data[0]);
-  };
-
   return (
     <div
       ref={canvasRef}
-      className="playground flex-col h-[85vh] h-max-[85vh] w-full w-max-full flex justify-center items-center absolute"
+      className="playground mt-[10vh] h-[75vh] h-max-[75vh] w-full w-max-full flex justify-center items-center absolute"
     >
-      <Input onInputChange={handleInputChange}/>
     </div>
   );
 }

@@ -1,13 +1,13 @@
 import React from 'react'
 import Header from './Header'
 import Footer from './Footer'
-import Playground from './Playground';
+import Midder from './Midder';
 
 function App() {
   return (
     <div className='app'>
         <Header/>
-        <Playground/>
+        <Midder/>
         <Footer/>
     </div>
   )
