@@ -1,5 +1,6 @@
 import p5 from "p5";
 import { useEffect, useRef, useState, useCallback } from "react";
+import Input from "./Input";
 
 class KruskalMaze {
   constructor(colSize, rowSize) {
@@ -266,9 +267,11 @@ class KruskalMaze {
 
 function Playground() {
   const canvasRef = useRef(null);
+  const [mazeSize, setMazeSize] = useState([15, 15]);
   const [lines, setLines] = useState([]);
   const [level_matrix, setLevelMatrix] = useState([]);
-  const [mazeSize, setMazeSize] = useState([15, 15]);
+  const [requestID, setRequestID] = useState([]);
+  
 
   const generateMaze = (height, width) => {
     const kruskalMaze = new KruskalMaze(height, width);
@@ -347,7 +350,7 @@ function Playground() {
 
   useEffect(() => {
     generateMaze(mazeSize[0], mazeSize[1]);
-  }, [mazeSize]);
+  }, [mazeSize, requestID]);
 
   useEffect(() => {
     addLines();
@@ -391,13 +394,9 @@ function Playground() {
     };
   }, [lines]);
 
-  const handleClick = () => {
-    const inputSize = document.getElementById("mazeSize").value;
-    if (inputSize === "") {
-      alert("Please Fill Maze Size!");
-      return;
-    }
-    setMazeSize([parseInt(inputSize), parseInt(inputSize)]);
+  const handleInputChange = (data) => {
+    setRequestID(data[1])
+    setMazeSize(data[0]);
   };
 
   return (
@@ -405,25 +404,7 @@ function Playground() {
       ref={canvasRef}
       className="playground flex-col h-[85vh] h-max-[85vh] w-full w-max-full flex justify-center items-center absolute"
     >
-      <div className="input mt-[50px]">
-        <label htmlFor="mazeSize">
-          Maze Size:
-          <input
-            type="text"
-            className="px-2 mx-4 outline-none w-[100px] bg-transparent border-b-2 border-[rgb(0,255,75)]"
-            id="mazeSize"
-            name="mazeSize"
-            maxLength={2}
-            placeholder="e.g. 25"
-          ></input>
-        </label>
-        <input
-          type="button"
-          value={"Generate"}
-          className="cursor-pointer bg-[rgb(0,255,75)] text-[rgb(30,30,30)] px-2 rounded-sm hover:bg-[rgb(150,250,125)]"
-          onClick={handleClick}
-        ></input>
-      </div>
+      <Input onInputChange={handleInputChange}/>
     </div>
   );
 }
