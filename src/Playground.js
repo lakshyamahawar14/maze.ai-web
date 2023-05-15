@@ -308,7 +308,7 @@ function Playground({inputData}) {
     var initialLines = [];
 
     var x = X / 2 - (offset / 2) * col_size;
-    var y = Y / 2 - offset - 250;
+    var y = Y / 2 - offset - (offset/2)*(row_size);
 
     var i;
     for (i = 0; i < col_size; ++i) {

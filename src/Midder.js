@@ -8,7 +8,7 @@ function Midder() {
         setData(newData)
     }
   return (
-    <div className='midder h-[85vh] h-max-[85vh] w-full w-max-full flex absolute'>
+    <div className='midder h-[85vh] h-max-[85vh] w-full w-max-full flex absolute justify-center'>
         <Input onInputChange={handleInputChange}/>
         <Playground inputData={data}/>
     </div>
