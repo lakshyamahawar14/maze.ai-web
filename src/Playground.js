@@ -464,9 +464,13 @@ function Playground({ inputData }) {
         const Y = canvasRef.current.offsetHeight;
         var playerSize = 5;
         if (X >= Y) {
-          playerSize = Math.floor(Math.floor(Math.floor(Y / mazeSize[0]) * 0.8)/8);
+          playerSize = Math.floor(
+            Math.floor(Math.floor(Y / mazeSize[0]) * 0.8) / 8
+          );
         } else {
-          playerSize = Math.floor(Math.floor(Math.floor(X / mazeSize[1]) * 0.8)/8);
+          playerSize = Math.floor(
+            Math.floor(Math.floor(X / mazeSize[1]) * 0.8) / 8
+          );
         }
         p.ellipse(playerPosition[0], playerPosition[1], playerSize, playerSize);
       };
@@ -483,9 +487,6 @@ function Playground({ inputData }) {
     };
   }, [lines, mazeSize, playerPosition]);
 
-
-
-
   useEffect(() => {
     const X = canvasRef.current.offsetWidth;
     const Y = canvasRef.current.offsetHeight;
@@ -495,37 +496,49 @@ function Playground({ inputData }) {
     } else {
       player_move = Math.floor(Math.floor(X / mazeSize[1]) * 0.8);
     }
-    
+
     const handleKeyPress = (event) => {
-      let j = Math.floor((playerPosition[0] - (Math.floor(X / 2) - mazeSize[1] * Math.floor(player_move / 2) + Math.floor(player_move / 2))) / player_move);
-      let i = Math.floor((playerPosition[1] - (Math.floor(Y / 2) - mazeSize[0]*Math.floor(player_move / 2) + Math.floor(player_move/2))) / player_move);
+      let j = Math.floor(
+        (playerPosition[0] -
+          (Math.floor(X / 2) -
+            mazeSize[1] * Math.floor(player_move / 2) +
+            Math.floor(player_move / 2))) /
+          player_move
+      );
+      let i = Math.floor(
+        (playerPosition[1] -
+          (Math.floor(Y / 2) -
+            mazeSize[0] * Math.floor(player_move / 2) +
+            Math.floor(player_move / 2))) /
+          player_move
+      );
       if (event.key === "w" || event.key === "W") {
         if (i - 1 < 0 || level_matrix[2 * i - 1][2 * j] === 1) {
           return;
         }
         setPlayerPosition([playerPosition[0], playerPosition[1] - player_move]);
-        i -= 1
+        i -= 1;
       } else if (event.key === "a" || event.key === "A") {
         if (j - 1 < 0 || level_matrix[2 * i][2 * j - 1] === 1) {
           return;
         }
         setPlayerPosition([playerPosition[0] - player_move, playerPosition[1]]);
-        j -= 1
+        j -= 1;
       } else if (event.key === "s" || event.key === "S") {
         if (i + 1 >= mazeSize[0] || level_matrix[2 * i + 1][2 * j] === 1) {
           return;
         }
         setPlayerPosition([playerPosition[0], playerPosition[1] + player_move]);
-        i += 1
+        i += 1;
       } else if (event.key === "d" || event.key === "D") {
         if (j + 1 >= mazeSize[1] || level_matrix[2 * i][2 * j + 1] === 1) {
           return;
         }
         setPlayerPosition([playerPosition[0] + player_move, playerPosition[1]]);
-        j += 1
+        j += 1;
       }
-      if(i === mazeSize[1]-1 && j === mazeSize[0]-1){
-        alert('Victory!')
+      if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+        alert("Victory!");
       }
     };
 
@@ -535,7 +548,6 @@ function Playground({ inputData }) {
       window.removeEventListener("keydown", handleKeyPress);
     };
   }, [mazeSize, playerPosition, level_matrix]);
-
 
   const [touchStart, setTouchStart] = useState(null);
 
@@ -551,8 +563,20 @@ function Playground({ inputData }) {
         player_move = Math.floor(Math.floor(X / mazeSize[1]) * 0.8);
       }
 
-      let j = Math.floor((playerPosition[0] - (Math.floor(X / 2) - mazeSize[1] * Math.floor(player_move / 2) + Math.floor(player_move / 2))) / player_move);
-      let i = Math.floor((playerPosition[1] - (Math.floor(Y / 2) - mazeSize[0]*Math.floor(player_move / 2) + Math.floor(player_move/2))) / player_move);
+      let j = Math.floor(
+        (playerPosition[0] -
+          (Math.floor(X / 2) -
+            mazeSize[1] * Math.floor(player_move / 2) +
+            Math.floor(player_move / 2))) /
+          player_move
+      );
+      let i = Math.floor(
+        (playerPosition[1] -
+          (Math.floor(Y / 2) -
+            mazeSize[0] * Math.floor(player_move / 2) +
+            Math.floor(player_move / 2))) /
+          player_move
+      );
 
       switch (direction) {
         case "up":
@@ -563,6 +587,7 @@ function Playground({ inputData }) {
             playerPosition[0],
             playerPosition[1] - player_move,
           ]);
+          i -= 1;
           break;
         case "down":
           if (i + 1 >= mazeSize[0] || level_matrix[2 * i + 1][2 * j] === 1) {
@@ -572,6 +597,7 @@ function Playground({ inputData }) {
             playerPosition[0],
             playerPosition[1] + player_move,
           ]);
+          i += 1;
           break;
         case "left":
           if (j - 1 < 0 || level_matrix[2 * i][2 * j - 1] === 1) {
@@ -581,6 +607,7 @@ function Playground({ inputData }) {
             playerPosition[0] - player_move,
             playerPosition[1],
           ]);
+          j -= 1;
           break;
         case "right":
           if (j + 1 >= mazeSize[1] || level_matrix[2 * i][2 * j + 1] === 1) {
@@ -590,9 +617,13 @@ function Playground({ inputData }) {
             playerPosition[0] + player_move,
             playerPosition[1],
           ]);
+          j += 1;
           break;
         default:
           break;
+      }
+      if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+        alert("Victory!");
       }
     },
     [canvasRef, mazeSize, playerPosition, level_matrix]
@@ -605,13 +636,13 @@ function Playground({ inputData }) {
     if (Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX > 10) {
         return "right";
-      } else if(diffX < -10) {
+      } else if (diffX < -10) {
         return "left";
       }
     } else {
       if (diffY > 10) {
         return "down";
-      } else if(diffY < -10){
+      } else if (diffY < -10) {
         return "up";
       }
     }
@@ -655,7 +686,7 @@ function Playground({ inputData }) {
       canvasElement.removeEventListener("touchmove", handleTouchMove, false);
       canvasElement.removeEventListener("touchend", handleTouchEnd, false);
     };
-  }, [canvasRef, handleTouchStart, handleTouchMove, handleTouchEnd]); 
+  }, [canvasRef, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   return (
     <div
