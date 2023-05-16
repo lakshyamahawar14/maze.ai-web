@@ -512,6 +512,8 @@ function Playground({ inputData }) {
     };
   }, [mazeSize, playerPosition]);
 
+  // Inside the Playground component
+
   const [touchStart, setTouchStart] = useState(null);
 
   const handleSwipe = useCallback(
@@ -563,15 +565,15 @@ function Playground({ inputData }) {
     const diffY = endY - startY;
 
     if (Math.abs(diffX) > Math.abs(diffY)) {
-      if (diffX > 5) {
+      if (diffX > 10) {
         return "right";
-      } else {
+      } else if(diffX < -10) {
         return "left";
       }
     } else {
-      if (diffY > 5) {
+      if (diffY > 10) {
         return "down";
-      } else {
+      } else if(diffY < -10){
         return "up";
       }
     }
@@ -580,6 +582,10 @@ function Playground({ inputData }) {
   const handleTouchStart = useCallback((event) => {
     const touch = event.touches[0];
     setTouchStart({ x: touch.clientX, y: touch.clientY });
+  }, []);
+
+  const handleTouchMove = useCallback((event) => {
+    event.preventDefault(); // Prevent page from scrolling while swiping
   }, []);
 
   const handleTouchEnd = useCallback(
@@ -603,13 +609,17 @@ function Playground({ inputData }) {
   useEffect(() => {
     const canvasElement = canvasRef.current;
     canvasElement.addEventListener("touchstart", handleTouchStart, false);
+    canvasElement.addEventListener("touchmove", handleTouchMove, false);
     canvasElement.addEventListener("touchend", handleTouchEnd, false);
 
     return () => {
       canvasElement.removeEventListener("touchstart", handleTouchStart, false);
+      canvasElement.removeEventListener("touchmove", handleTouchMove, false);
       canvasElement.removeEventListener("touchend", handleTouchEnd, false);
     };
-  }, [canvasRef, handleTouchStart, handleTouchEnd]);
+  }, [canvasRef, handleTouchStart, handleTouchMove, handleTouchEnd]); // Add any additional dependencies
+
+  // Rest of the code...
 
   return (
     <div
