@@ -563,13 +563,13 @@ function Playground({ inputData }) {
     const diffY = endY - startY;
 
     if (Math.abs(diffX) > Math.abs(diffY)) {
-      if (diffX > 0) {
+      if (diffX > 5) {
         return "right";
       } else {
         return "left";
       }
     } else {
-      if (diffY > 0) {
+      if (diffY > 5) {
         return "down";
       } else {
         return "up";
