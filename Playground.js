@@ -587,8 +587,7 @@ function Playground({ inputData }) {
             playerPosition[0],
             playerPosition[1] - player_move,
           ]);
-          i -= 1;
-          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+          if (i-1 === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
             alert("Victory!");
           }
           break;
@@ -600,8 +599,7 @@ function Playground({ inputData }) {
             playerPosition[0],
             playerPosition[1] + player_move,
           ]);
-          i += 1;
-          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+          if (i+1 === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
             alert("Victory!");
           }
           break;
@@ -613,8 +611,7 @@ function Playground({ inputData }) {
             playerPosition[0] - player_move,
             playerPosition[1],
           ]);
-          j -= 1;
-          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+          if (i === mazeSize[1] - 1 && j-1 === mazeSize[0] - 1) {
             alert("Victory!");
           }
           break;
@@ -626,8 +623,7 @@ function Playground({ inputData }) {
             playerPosition[0] + player_move,
             playerPosition[1],
           ]);
-          j += 1;
-          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+          if (i === mazeSize[1] - 1 && j+1 === mazeSize[0] - 1) {
             alert("Victory!");
           }
           break;
