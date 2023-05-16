@@ -76,20 +76,20 @@ class KruskalMaze {
     let clusters = {};
     let ranks = {};
     let solution = new Set();
-  
+
     // Initialize clusters and ranks for each node
     for (let node of this.nodes) {
       clusters[node] = node;
       ranks[node] = 0;
     }
-  
+
     function find(u) {
       if (clusters[u] !== u) {
         clusters[u] = find(clusters[u]);
       }
       return clusters[u];
     }
-  
+
     function union(x, y) {
       [x, y] = [find(x), find(y)];
       if (ranks[x] > ranks[y]) {
@@ -101,10 +101,10 @@ class KruskalMaze {
         ranks[y] += 1;
       }
     }
-  
+
     // Sort the edges by weight in ascending order
     edgeWeights.sort((a, b) => a[0] - b[0]);
-  
+
     // Apply Kruskal's algorithm to find minimum spanning tree
     for (let [, x, y] of edgeWeights) {
       if (x !== y) {
@@ -115,10 +115,9 @@ class KruskalMaze {
         }
       }
     }
-  
+
     return solution;
   }
-  
 
   getEdgeLocations() {
     let edge_data = [];
@@ -159,34 +158,94 @@ class KruskalMaze {
   getMazeWalls() {
     var edge_data = this.getEdgeLocations();
     var maze_data = [];
-  
+
     for (var i = 0; i < this.rowSize; i++) {
       for (var j = 0; j < this.colSize; j++) {
-        var top_edge = [[j, j + 1], [i, i]];
-        if (!this.isEdgeInData(top_edge, edge_data) && !this.isEdgeInData([[j + 1, j], [i, i]], edge_data)) {
-          maze_data.push([[j, i], [j + 1, i]]);
+        var top_edge = [
+          [j, j + 1],
+          [i, i],
+        ];
+        if (
+          !this.isEdgeInData(top_edge, edge_data) &&
+          !this.isEdgeInData(
+            [
+              [j + 1, j],
+              [i, i],
+            ],
+            edge_data
+          )
+        ) {
+          maze_data.push([
+            [j, i],
+            [j + 1, i],
+          ]);
         }
-  
-        var bottom_edge = [[j + 1, j], [i + 1, i + 1]];
-        if (!this.isEdgeInData(bottom_edge, edge_data) && !this.isEdgeInData([[j, j + 1], [i + 1, i + 1]], edge_data)) {
-          maze_data.push([[j + 1, i + 1], [j, i + 1]]);
+
+        var bottom_edge = [
+          [j + 1, j],
+          [i + 1, i + 1],
+        ];
+        if (
+          !this.isEdgeInData(bottom_edge, edge_data) &&
+          !this.isEdgeInData(
+            [
+              [j, j + 1],
+              [i + 1, i + 1],
+            ],
+            edge_data
+          )
+        ) {
+          maze_data.push([
+            [j + 1, i + 1],
+            [j, i + 1],
+          ]);
         }
-  
-        var right_edge = [[j + 1, j + 1], [i, i + 1]];
-        if (!this.isEdgeInData(right_edge, edge_data) && !this.isEdgeInData([[j + 1, j + 1], [i + 1, i]], edge_data)) {
-          maze_data.push([[j + 1, i], [j + 1, i + 1]]);
+
+        var right_edge = [
+          [j + 1, j + 1],
+          [i, i + 1],
+        ];
+        if (
+          !this.isEdgeInData(right_edge, edge_data) &&
+          !this.isEdgeInData(
+            [
+              [j + 1, j + 1],
+              [i + 1, i],
+            ],
+            edge_data
+          )
+        ) {
+          maze_data.push([
+            [j + 1, i],
+            [j + 1, i + 1],
+          ]);
         }
-  
-        var left_edge = [[j, j], [i + 1, i]];
-        if (!this.isEdgeInData(left_edge, edge_data) && !this.isEdgeInData([[j, j], [i, i + 1]], edge_data)) {
-          maze_data.push([[j, i], [j, i + 1]]);
+
+        var left_edge = [
+          [j, j],
+          [i + 1, i],
+        ];
+        if (
+          !this.isEdgeInData(left_edge, edge_data) &&
+          !this.isEdgeInData(
+            [
+              [j, j],
+              [i, i + 1],
+            ],
+            edge_data
+          )
+        ) {
+          maze_data.push([
+            [j, i],
+            [j, i + 1],
+          ]);
         }
       }
     }
-  
+
     return maze_data;
   }
-  
+
   isEdgeInData(edge, edge_data) {
     for (var i = 0; i < edge_data.length; i++) {
       if (this.isEqual(edge, edge_data[i])) {
@@ -195,11 +254,10 @@ class KruskalMaze {
     }
     return false;
   }
-  
-  isEqual(arr1, arr2){
+
+  isEqual(arr1, arr2) {
     return JSON.stringify(arr1) === JSON.stringify(arr2);
   }
-  
 
   getEntryExits() {
     let p1 = [this.rowSize - 1, 0];
@@ -264,23 +322,21 @@ class KruskalMaze {
   }
 }
 
-function Playground({inputData}) {
+function Playground({ inputData }) {
   const canvasRef = useRef(null);
 
   const [mazeSize, setMazeSize] = useState([15, 15]);
   const [lines, setLines] = useState([]);
   const [level_matrix, setLevelMatrix] = useState([]);
-  const [requestID, setRequestID] =   useState(1111);
-  const [playerPosition, setPlayerPosition] = useState([])
+  const [requestID, setRequestID] = useState(1111);
+  const [playerPosition, setPlayerPosition] = useState([]);
 
   useEffect(() => {
-    if(inputData.length !== 0){
+    if (inputData.length !== 0) {
       setMazeSize(inputData[0]);
       setRequestID(inputData[1]);
     }
   }, [inputData]);
-  
-  
 
   const generateMaze = (height, width) => {
     const kruskalMaze = new KruskalMaze(height, width);
@@ -302,12 +358,11 @@ function Playground({inputData}) {
     }
     const row_size = (level_matrix.length + 1) / 2;
     const col_size = (level_matrix[0].length + 1) / 2;
-    var offset = 18
-    if(X >= Y){
-      offset = (Math.floor(Y/row_size))*0.80;
-    }
-    else{
-      offset = (Math.floor(X/col_size))*0.80;
+    var offset = 18;
+    if (X >= Y) {
+      offset = Math.floor(Y / row_size) * 0.8;
+    } else {
+      offset = Math.floor(X / col_size) * 0.8;
     }
 
     const rows = 2 * row_size - 1;
@@ -316,9 +371,9 @@ function Playground({inputData}) {
     var initialLines = [];
 
     var x = X / 2 - (offset / 2) * col_size;
-    var y = Y / 2 - (offset / 2)*(row_size);
+    var y = Y / 2 - (offset / 2) * row_size;
 
-    setPlayerPosition([x+offset/2, y+offset/2])
+    setPlayerPosition([x + offset / 2, y + offset / 2]);
 
     var i;
     for (i = 0; i < col_size; ++i) {
@@ -377,7 +432,7 @@ function Playground({inputData}) {
   useEffect(() => {
     const sketch = (p) => {
       let canvas;
-  
+
       p.setup = () => {
         canvas = p.createCanvas(
           canvasRef.current.offsetWidth,
@@ -386,13 +441,13 @@ function Playground({inputData}) {
         canvas.parent(canvasRef.current);
         p.background(0, 0, 0, 0);
       };
-  
+
       p.draw = () => {
         p.background(0, 0, 0, 0);
         drawLinesOnCanvas();
         drawPlayer();
       };
-  
+
       const drawLinesOnCanvas = () => {
         p.stroke(0, 255, 75);
         p.strokeWeight(3);
@@ -401,7 +456,7 @@ function Playground({inputData}) {
           p.line(x1, y1, x2, y2);
         }
       };
-  
+
       const drawPlayer = () => {
         p.stroke(255, 0, 0);
         p.strokeWeight(3);
@@ -409,63 +464,158 @@ function Playground({inputData}) {
         const Y = canvasRef.current.offsetHeight;
         var playerSize = 5;
         if (X >= Y) {
-          playerSize = Math.floor((Y / mazeSize[0]) * 0.10);
+          playerSize = Math.floor((Y / mazeSize[0]) * 0.1);
         } else {
-          playerSize = Math.floor((X / mazeSize[1]) * 0.10);
+          playerSize = Math.floor((X / mazeSize[1]) * 0.1);
         }
         p.ellipse(playerPosition[0], playerPosition[1], playerSize, playerSize);
       };
     };
-  
+
     if (lines.length === 0) {
       return () => {};
     }
-  
+
     const p5Instance = new p5(sketch);
-  
+
     // Cleanup function to remove the p5 instance
     return () => {
       p5Instance.remove();
     };
-  }, [lines, mazeSize, playerPosition]);  
-  
+  }, [lines, mazeSize, playerPosition]);
 
   useEffect(() => {
     const handleKeyPress = (event) => {
       const X = canvasRef.current.offsetWidth;
       const Y = canvasRef.current.offsetHeight;
-      var player_move
-      if(X >= Y){
-        player_move = (Math.floor(Y/mazeSize[0]))*0.80;
+      var player_move;
+      if (X >= Y) {
+        player_move = Math.floor(Y / mazeSize[0]) * 0.8;
+      } else {
+        player_move = Math.floor(X / mazeSize[1]) * 0.8;
       }
-      else{
-        player_move = (Math.floor(X/mazeSize[1]))*0.80;
-      }
-      if (event.key === 'w' || event.key === 'W') {
-        setPlayerPosition([playerPosition[0], playerPosition[1]-player_move])
-      } else if (event.key === 'a' || event.key === 'A') {
-        setPlayerPosition([playerPosition[0]-player_move, playerPosition[1]])
-      } else if (event.key === 's' || event.key === 'S') {
-        setPlayerPosition([playerPosition[0], playerPosition[1]+player_move])
-      } else if (event.key === 'd' || event.key === 'D') {
-        setPlayerPosition([playerPosition[0]+player_move, playerPosition[1]])
+      if (event.key === "w" || event.key === "W") {
+        setPlayerPosition([playerPosition[0], playerPosition[1] - player_move]);
+      } else if (event.key === "a" || event.key === "A") {
+        setPlayerPosition([playerPosition[0] - player_move, playerPosition[1]]);
+      } else if (event.key === "s" || event.key === "S") {
+        setPlayerPosition([playerPosition[0], playerPosition[1] + player_move]);
+      } else if (event.key === "d" || event.key === "D") {
+        setPlayerPosition([playerPosition[0] + player_move, playerPosition[1]]);
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
+    window.addEventListener("keydown", handleKeyPress);
 
-    // Cleanup the event listener when component unmounts
     return () => {
-      window.removeEventListener('keydown', handleKeyPress);
+      window.removeEventListener("keydown", handleKeyPress);
     };
   }, [mazeSize, playerPosition]);
+
+  const [touchStart, setTouchStart] = useState(null);
+
+  const handleSwipe = useCallback(
+    (direction) => {
+      const X = canvasRef.current.offsetWidth;
+      const Y = canvasRef.current.offsetHeight;
+      let player_move;
+
+      if (X >= Y) {
+        player_move = Math.floor(Y / mazeSize[0]) * 0.8;
+      } else {
+        player_move = Math.floor(X / mazeSize[1]) * 0.8;
+      }
+
+      switch (direction) {
+        case "up":
+          setPlayerPosition([
+            playerPosition[0],
+            playerPosition[1] - player_move,
+          ]);
+          break;
+        case "down":
+          setPlayerPosition([
+            playerPosition[0],
+            playerPosition[1] + player_move,
+          ]);
+          break;
+        case "left":
+          setPlayerPosition([
+            playerPosition[0] - player_move,
+            playerPosition[1],
+          ]);
+          break;
+        case "right":
+          setPlayerPosition([
+            playerPosition[0] + player_move,
+            playerPosition[1],
+          ]);
+          break;
+        default:
+          break;
+      }
+    },
+    [canvasRef, mazeSize, playerPosition]
+  );
+
+  const getSwipeDirection = useCallback((startX, startY, endX, endY) => {
+    const diffX = endX - startX;
+    const diffY = endY - startY;
+
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 0) {
+        return "right";
+      } else {
+        return "left";
+      }
+    } else {
+      if (diffY > 0) {
+        return "down";
+      } else {
+        return "up";
+      }
+    }
+  }, []);
+
+  const handleTouchStart = useCallback((event) => {
+    const touch = event.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (event) => {
+      if (!touchStart) return;
+
+      const touch = event.changedTouches[0];
+      const swipeDirection = getSwipeDirection(
+        touchStart.x,
+        touchStart.y,
+        touch.clientX,
+        touch.clientY
+      );
+
+      handleSwipe(swipeDirection);
+      setTouchStart(null);
+    },
+    [getSwipeDirection, handleSwipe, touchStart]
+  );
+
+  useEffect(() => {
+    const canvasElement = canvasRef.current;
+    canvasElement.addEventListener("touchstart", handleTouchStart, false);
+    canvasElement.addEventListener("touchend", handleTouchEnd, false);
+
+    return () => {
+      canvasElement.removeEventListener("touchstart", handleTouchStart, false);
+      canvasElement.removeEventListener("touchend", handleTouchEnd, false);
+    };
+  }, [canvasRef, handleTouchStart, handleTouchEnd]);
 
   return (
     <div
       ref={canvasRef}
       className="playground mt-[10vh] h-[75vh] h-max-[75vh] w-full w-max-full flex justify-center items-center absolute"
-    >
-    </div>
+    ></div>
   );
 }
 
