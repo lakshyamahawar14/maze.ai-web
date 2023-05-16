@@ -271,6 +271,7 @@ function Playground({inputData}) {
   const [lines, setLines] = useState([]);
   const [level_matrix, setLevelMatrix] = useState([]);
   const [requestID, setRequestID] =   useState(1111);
+  const [playerPosition, setPlayerPosition] = useState([])
 
   useEffect(() => {
     if(inputData.length !== 0){
@@ -316,6 +317,8 @@ function Playground({inputData}) {
 
     var x = X / 2 - (offset / 2) * col_size;
     var y = Y / 2 - (offset / 2)*(row_size);
+
+    setPlayerPosition([x+offset/2, y+offset/2])
 
     var i;
     for (i = 0; i < col_size; ++i) {
@@ -387,6 +390,7 @@ function Playground({inputData}) {
       p.draw = () => {
         p.background(0, 0, 0, 0);
         drawLinesOnCanvas();
+        drawPlayer();
       };
 
       const drawLinesOnCanvas = () => {
@@ -396,6 +400,21 @@ function Playground({inputData}) {
           const { x1, y1, x2, y2 } = lines[i];
           p.line(x1, y1, x2, y2);
         }
+      };
+
+      const drawPlayer = () => {
+        p.stroke(255, 0, 0);
+        p.strokeWeight(3);
+        const X = canvasRef.current.offsetWidth;
+        const Y = canvasRef.current.offsetHeight;
+        var player_size = 5
+        if(X >= Y){
+          player_size = (Math.floor(Y/mazeSize[0]))*0.10;
+        }
+        else{
+          player_size = (Math.floor(X/mazeSize[1]))*0.10;
+        }
+        p.line(playerPosition[0]-player_size, playerPosition[1], playerPosition[0]+player_size, playerPosition[1]);
       };
     };
     if (lines.length === 0) {
@@ -407,7 +426,7 @@ function Playground({inputData}) {
     return () => {
       p5Instance.remove();
     };
-  }, [lines]);
+  }, [lines, playerPosition, mazeSize]);
 
   return (
     <div

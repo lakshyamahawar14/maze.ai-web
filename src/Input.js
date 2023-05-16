@@ -39,7 +39,7 @@ function Input(props) {
         <input
           type="button"
           value={"Generate"}
-          className="cursor-pointer bg-[rgb(0,255,75)] text-[rgb(30,30,30)] text-sm px-2 rounded-sm hover:bg-[rgb(150,250,125)]"
+          className="cursor-pointer bg-[rgb(0,255,75)] text-[rgb(30,30,30)] font-bold px-2 rounded-sm hover:bg-[rgb(150,250,125)]"
           onClick={handleClick}
         ></input>
       </div>
