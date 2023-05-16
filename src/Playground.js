@@ -495,6 +495,7 @@ function Playground({ inputData }) {
     } else {
       player_move = Math.floor(Math.floor(X / mazeSize[1]) * 0.8);
     }
+    
     const handleKeyPress = (event) => {
       let j = Math.floor((playerPosition[0] - (Math.floor(X / 2) - mazeSize[1] * Math.floor(player_move / 2) + Math.floor(player_move / 2))) / player_move);
       let i = Math.floor((playerPosition[1] - (Math.floor(Y / 2) - mazeSize[0]*Math.floor(player_move / 2) + Math.floor(player_move/2))) / player_move);
@@ -538,9 +539,9 @@ function Playground({ inputData }) {
       let player_move;
 
       if (X >= Y) {
-        player_move = Math.floor(Y / mazeSize[0]) * 0.8;
+        player_move = Math.floor(Math.floor(Y / mazeSize[0]) * 0.8);
       } else {
-        player_move = Math.floor(X / mazeSize[1]) * 0.8;
+        player_move = Math.floor(Math.floor(X / mazeSize[1]) * 0.8);
       }
 
       let j = Math.floor((playerPosition[0] - (Math.floor(X / 2) - mazeSize[1] * Math.floor(player_move / 2) + Math.floor(player_move / 2))) / player_move);
