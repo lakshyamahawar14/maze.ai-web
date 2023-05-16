@@ -360,9 +360,9 @@ function Playground({ inputData }) {
     const col_size = (level_matrix[0].length + 1) / 2;
     var offset = 18;
     if (X >= Y) {
-      offset = Math.floor(Y / row_size) * 0.8;
+      offset = Math.floor(Math.floor(Y / row_size) * 0.8);
     } else {
-      offset = Math.floor(X / col_size) * 0.8;
+      offset = Math.floor(Math.floor(X / col_size) * 0.8);
     }
 
     const rows = 2 * row_size - 1;
@@ -370,10 +370,10 @@ function Playground({ inputData }) {
 
     var initialLines = [];
 
-    var x = X / 2 - (offset / 2) * col_size;
-    var y = Y / 2 - (offset / 2) * row_size;
+    var x = Math.floor(X / 2) - Math.floor(offset / 2) * col_size;
+    var y = Math.floor(Y / 2) - Math.floor(offset / 2) * row_size;
 
-    setPlayerPosition([x + offset / 2, y + offset / 2]);
+    setPlayerPosition([x + Math.floor(offset / 2), y + Math.floor(offset / 2)]);
 
     var i;
     for (i = 0; i < col_size; ++i) {
@@ -464,9 +464,9 @@ function Playground({ inputData }) {
         const Y = canvasRef.current.offsetHeight;
         var playerSize = 5;
         if (X >= Y) {
-          playerSize = Math.floor((Y / mazeSize[0]) * 0.1);
+          playerSize = Math.floor(Math.floor(Math.floor(Y / mazeSize[0]) * 0.8)/8);
         } else {
-          playerSize = Math.floor((X / mazeSize[1]) * 0.1);
+          playerSize = Math.floor(Math.floor(Math.floor(X / mazeSize[1]) * 0.8)/8);
         }
         p.ellipse(playerPosition[0], playerPosition[1], playerSize, playerSize);
       };
@@ -478,29 +478,45 @@ function Playground({ inputData }) {
 
     const p5Instance = new p5(sketch);
 
-    // Cleanup function to remove the p5 instance
     return () => {
       p5Instance.remove();
     };
   }, [lines, mazeSize, playerPosition]);
 
+
+
+
   useEffect(() => {
+    const X = canvasRef.current.offsetWidth;
+    const Y = canvasRef.current.offsetHeight;
+    var player_move;
+    if (X >= Y) {
+      player_move = Math.floor(Math.floor(Y / mazeSize[0]) * 0.8);
+    } else {
+      player_move = Math.floor(Math.floor(X / mazeSize[1]) * 0.8);
+    }
     const handleKeyPress = (event) => {
-      const X = canvasRef.current.offsetWidth;
-      const Y = canvasRef.current.offsetHeight;
-      var player_move;
-      if (X >= Y) {
-        player_move = Math.floor(Y / mazeSize[0]) * 0.8;
-      } else {
-        player_move = Math.floor(X / mazeSize[1]) * 0.8;
-      }
+      let j = Math.floor((playerPosition[0] - (Math.floor(X / 2) - mazeSize[1] * Math.floor(player_move / 2) + Math.floor(player_move / 2))) / player_move);
+      let i = Math.floor((playerPosition[1] - (Math.floor(Y / 2) - mazeSize[0]*Math.floor(player_move / 2) + Math.floor(player_move/2))) / player_move);
       if (event.key === "w" || event.key === "W") {
+        if (i - 1 < 0 || level_matrix[2 * i - 1][2 * j] === 1) {
+          return;
+        }
         setPlayerPosition([playerPosition[0], playerPosition[1] - player_move]);
       } else if (event.key === "a" || event.key === "A") {
+        if (j - 1 < 0 || level_matrix[2 * i][2 * j - 1] === 1) {
+          return;
+        }
         setPlayerPosition([playerPosition[0] - player_move, playerPosition[1]]);
       } else if (event.key === "s" || event.key === "S") {
+        if (i + 1 >= mazeSize[0] || level_matrix[2 * i + 1][2 * j] === 1) {
+          return;
+        }
         setPlayerPosition([playerPosition[0], playerPosition[1] + player_move]);
       } else if (event.key === "d" || event.key === "D") {
+        if (j + 1 >= mazeSize[1] || level_matrix[2 * i][2 * j + 1] === 1) {
+          return;
+        }
         setPlayerPosition([playerPosition[0] + player_move, playerPosition[1]]);
       }
     };
@@ -510,9 +526,8 @@ function Playground({ inputData }) {
     return () => {
       window.removeEventListener("keydown", handleKeyPress);
     };
-  }, [mazeSize, playerPosition]);
+  }, [mazeSize, playerPosition, level_matrix]);
 
-  // Inside the Playground component
 
   const [touchStart, setTouchStart] = useState(null);
 
@@ -585,7 +600,7 @@ function Playground({ inputData }) {
   }, []);
 
   const handleTouchMove = useCallback((event) => {
-    event.preventDefault(); // Prevent page from scrolling while swiping
+    event.preventDefault();
   }, []);
 
   const handleTouchEnd = useCallback(
@@ -617,9 +632,7 @@ function Playground({ inputData }) {
       canvasElement.removeEventListener("touchmove", handleTouchMove, false);
       canvasElement.removeEventListener("touchend", handleTouchEnd, false);
     };
-  }, [canvasRef, handleTouchStart, handleTouchMove, handleTouchEnd]); // Add any additional dependencies
-
-  // Rest of the code...
+  }, [canvasRef, handleTouchStart, handleTouchMove, handleTouchEnd]); 
 
   return (
     <div
