@@ -504,21 +504,28 @@ function Playground({ inputData }) {
           return;
         }
         setPlayerPosition([playerPosition[0], playerPosition[1] - player_move]);
+        i -= 1
       } else if (event.key === "a" || event.key === "A") {
         if (j - 1 < 0 || level_matrix[2 * i][2 * j - 1] === 1) {
           return;
         }
         setPlayerPosition([playerPosition[0] - player_move, playerPosition[1]]);
+        j -= 1
       } else if (event.key === "s" || event.key === "S") {
         if (i + 1 >= mazeSize[0] || level_matrix[2 * i + 1][2 * j] === 1) {
           return;
         }
         setPlayerPosition([playerPosition[0], playerPosition[1] + player_move]);
+        i += 1
       } else if (event.key === "d" || event.key === "D") {
         if (j + 1 >= mazeSize[1] || level_matrix[2 * i][2 * j + 1] === 1) {
           return;
         }
         setPlayerPosition([playerPosition[0] + player_move, playerPosition[1]]);
+        j += 1
+      }
+      if(i === mazeSize[1]-1 && j === mazeSize[0]-1){
+        alert('Victory!')
       }
     };
 
