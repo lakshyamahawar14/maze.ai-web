@@ -543,26 +543,41 @@ function Playground({ inputData }) {
         player_move = Math.floor(X / mazeSize[1]) * 0.8;
       }
 
+      let j = Math.floor((playerPosition[0] - (Math.floor(X / 2) - mazeSize[1] * Math.floor(player_move / 2) + Math.floor(player_move / 2))) / player_move);
+      let i = Math.floor((playerPosition[1] - (Math.floor(Y / 2) - mazeSize[0]*Math.floor(player_move / 2) + Math.floor(player_move/2))) / player_move);
+
       switch (direction) {
         case "up":
+          if (i - 1 < 0 || level_matrix[2 * i - 1][2 * j] === 1) {
+            return;
+          }
           setPlayerPosition([
             playerPosition[0],
             playerPosition[1] - player_move,
           ]);
           break;
         case "down":
+          if (i + 1 >= mazeSize[0] || level_matrix[2 * i + 1][2 * j] === 1) {
+            return;
+          }
           setPlayerPosition([
             playerPosition[0],
             playerPosition[1] + player_move,
           ]);
           break;
         case "left":
+          if (j - 1 < 0 || level_matrix[2 * i][2 * j - 1] === 1) {
+            return;
+          }
           setPlayerPosition([
             playerPosition[0] - player_move,
             playerPosition[1],
           ]);
           break;
         case "right":
+          if (j + 1 >= mazeSize[1] || level_matrix[2 * i][2 * j + 1] === 1) {
+            return;
+          }
           setPlayerPosition([
             playerPosition[0] + player_move,
             playerPosition[1],
@@ -572,7 +587,7 @@ function Playground({ inputData }) {
           break;
       }
     },
-    [canvasRef, mazeSize, playerPosition]
+    [canvasRef, mazeSize, playerPosition, level_matrix]
   );
 
   const getSwipeDirection = useCallback((startX, startY, endX, endY) => {
