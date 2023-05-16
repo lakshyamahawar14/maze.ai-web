@@ -377,7 +377,7 @@ function Playground({inputData}) {
   useEffect(() => {
     const sketch = (p) => {
       let canvas;
-
+  
       p.setup = () => {
         canvas = p.createCanvas(
           canvasRef.current.offsetWidth,
@@ -386,13 +386,13 @@ function Playground({inputData}) {
         canvas.parent(canvasRef.current);
         p.background(0, 0, 0, 0);
       };
-
+  
       p.draw = () => {
         p.background(0, 0, 0, 0);
         drawLinesOnCanvas();
         drawPlayer();
       };
-
+  
       const drawLinesOnCanvas = () => {
         p.stroke(0, 255, 75);
         p.strokeWeight(3);
@@ -401,32 +401,64 @@ function Playground({inputData}) {
           p.line(x1, y1, x2, y2);
         }
       };
-
+  
       const drawPlayer = () => {
         p.stroke(255, 0, 0);
         p.strokeWeight(3);
         const X = canvasRef.current.offsetWidth;
         const Y = canvasRef.current.offsetHeight;
-        var player_size = 5
-        if(X >= Y){
-          player_size = (Math.floor(Y/mazeSize[0]))*0.10;
+        var playerSize = 5;
+        if (X >= Y) {
+          playerSize = Math.floor((Y / mazeSize[0]) * 0.10);
+        } else {
+          playerSize = Math.floor((X / mazeSize[1]) * 0.10);
         }
-        else{
-          player_size = (Math.floor(X/mazeSize[1]))*0.10;
-        }
-        p.line(playerPosition[0]-player_size, playerPosition[1], playerPosition[0]+player_size, playerPosition[1]);
+        p.ellipse(playerPosition[0], playerPosition[1], playerSize, playerSize);
       };
     };
+  
     if (lines.length === 0) {
       return () => {};
     }
+  
     const p5Instance = new p5(sketch);
-
+  
     // Cleanup function to remove the p5 instance
     return () => {
       p5Instance.remove();
     };
-  }, [lines, playerPosition, mazeSize]);
+  }, [lines, mazeSize, playerPosition]);  
+  
+
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      const X = canvasRef.current.offsetWidth;
+      const Y = canvasRef.current.offsetHeight;
+      var player_move
+      if(X >= Y){
+        player_move = (Math.floor(Y/mazeSize[0]))*0.80;
+      }
+      else{
+        player_move = (Math.floor(X/mazeSize[1]))*0.80;
+      }
+      if (event.key === 'w' || event.key === 'W') {
+        setPlayerPosition([playerPosition[0], playerPosition[1]-player_move])
+      } else if (event.key === 'a' || event.key === 'A') {
+        setPlayerPosition([playerPosition[0]-player_move, playerPosition[1]])
+      } else if (event.key === 's' || event.key === 'S') {
+        setPlayerPosition([playerPosition[0], playerPosition[1]+player_move])
+      } else if (event.key === 'd' || event.key === 'D') {
+        setPlayerPosition([playerPosition[0]+player_move, playerPosition[1]])
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+
+    // Cleanup the event listener when component unmounts
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [mazeSize, playerPosition]);
 
   return (
     <div
