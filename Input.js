@@ -32,12 +32,9 @@ function Input(props) {
 
   const handleChange = () => {
     const inputSize = document.getElementById("mazeSize").value;
-    if (inputSize === "") {
+    if (inputSize === "" || isNaN(inputSize) === true) {
       setMazeSize([0, 0]);
     } else {
-      if(isNaN(inputSize)){
-        return
-      }
       setMazeSize([parseInt(inputSize), parseInt(inputSize)]);
     }
   };
