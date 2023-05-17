@@ -21,7 +21,7 @@ function Input(props) {
     }
   };
   return (
-    <div className="input mt-[15px] h-[10vh]">
+    <div className="input mt-[15px] h-[5vh]">
       <label htmlFor="mazeSize">
         Maze Size:
         <input

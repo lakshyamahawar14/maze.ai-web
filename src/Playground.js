@@ -711,7 +711,7 @@ function Playground({ inputData }) {
   return (
     <div
       ref={canvasRef}
-      className="playground mt-[10vh] h-[75vh] h-max-[75vh] w-full w-max-full flex justify-center items-center absolute"
+      className="playground mt-[5vh] h-[80vh] h-max-[80vh] w-full w-max-full flex justify-center items-center absolute"
     ></div>
   );
 }
