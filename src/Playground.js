@@ -18,7 +18,13 @@ class KruskalMaze {
   getRandomEdgeWeights() {
     let edge_weights = [];
     for (let [x, y] of this.edges) {
-      let weight = Math.floor(Math.random() * 4) + 1;
+      let weight;
+      if (Math.random() < 0.2) {
+        weight = Math.floor(Math.random() * 4) + 5;
+      } else {
+        weight = Math.floor(Math.random() * 4) + 1;
+      }
+
       edge_weights.push([weight, x, y]);
     }
     return edge_weights;
@@ -26,19 +32,34 @@ class KruskalMaze {
 
   getLegalTraversalEdges() {
     let legal_edges = {};
+    let obstacles = [];
+
     for (let s of this.maze) {
       let [x, y] = s;
+
+      let isObstacle = obstacles.some(([ox, oy]) => x === ox && y === oy);
+
+      if (isObstacle) {
+        continue;
+      }
+
       if (!(x in legal_edges)) {
         legal_edges[x] = [y];
       } else {
         legal_edges[x].push(y);
       }
+
       if (!(y in legal_edges)) {
         legal_edges[y] = [x];
       } else {
         legal_edges[y].push(x);
       }
+
+      if (Math.random() < 0.2) {
+        obstacles.push([x, y]);
+      }
     }
+
     return legal_edges;
   }
 
@@ -77,7 +98,6 @@ class KruskalMaze {
     let ranks = {};
     let solution = new Set();
 
-    // Initialize clusters and ranks for each node
     for (let node of this.nodes) {
       clusters[node] = node;
       ranks[node] = 0;
@@ -102,14 +122,18 @@ class KruskalMaze {
       }
     }
 
-    // Sort the edges by weight in ascending order
     edgeWeights.sort((a, b) => a[0] - b[0]);
 
-    // Apply Kruskal's algorithm to find minimum spanning tree
-    for (let [, x, y] of edgeWeights) {
+    const desiredDensity = 1;
+
+    const numEdgesToInclude = Math.floor(edgeWeights.length * desiredDensity);
+
+    for (let i = 0; i < numEdgesToInclude; i++) {
+      let randomIndex = Math.floor(Math.random() * edgeWeights.length);
+      let [, x, y] = edgeWeights.splice(randomIndex, 1)[0];
+
       if (x !== y) {
         if (find(x) !== find(y)) {
-          // Add edge to solution
           solution.add([x, y]);
           union(x, y);
         }
@@ -331,8 +355,8 @@ function Playground({ inputData }) {
   const [requestID, setRequestID] = useState(1111);
   const [playerPosition, setPlayerPosition] = useState([]);
   const [isVictory, setIsVictory] = useState(false);
-  if(isVictory === true){
-    setIsVictory(false)
+  if (isVictory === true) {
+    setIsVictory(false);
   }
 
   useEffect(() => {
@@ -542,8 +566,19 @@ function Playground({ inputData }) {
         setPlayerPosition([playerPosition[0] + player_move, playerPosition[1]]);
         j += 1;
       }
-      if ((event.key === "w" || event.key === "W" || event.key === "s" || event.key === "S" || event.key === "a" || event.key === "A" || event.key === "d" || event.key === "D") && i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
-        setIsVictory(true)
+      if (
+        (event.key === "w" ||
+          event.key === "W" ||
+          event.key === "s" ||
+          event.key === "S" ||
+          event.key === "a" ||
+          event.key === "A" ||
+          event.key === "d" ||
+          event.key === "D") &&
+        i === mazeSize[1] - 1 &&
+        j === mazeSize[0] - 1
+      ) {
+        setIsVictory(true);
         alert("Victory!");
       }
     };
@@ -593,9 +628,9 @@ function Playground({ inputData }) {
             playerPosition[0],
             playerPosition[1] - player_move,
           ]);
-          i -= 1
+          i -= 1;
           if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
-            setIsVictory(true)
+            setIsVictory(true);
             alert("Victory!");
           }
           break;
@@ -607,9 +642,9 @@ function Playground({ inputData }) {
             playerPosition[0],
             playerPosition[1] + player_move,
           ]);
-          i += 1
+          i += 1;
           if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
-            setIsVictory(true)
+            setIsVictory(true);
             alert("Victory!");
           }
           break;
@@ -623,7 +658,7 @@ function Playground({ inputData }) {
           ]);
           j -= 1;
           if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
-            setIsVictory(true)
+            setIsVictory(true);
             alert("Victory!");
           }
           break;
@@ -635,15 +670,14 @@ function Playground({ inputData }) {
             playerPosition[0] + player_move,
             playerPosition[1],
           ]);
-          j += 1
+          j += 1;
           if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
-            setIsVictory(true)
+            setIsVictory(true);
             alert("Victory!");
           }
           break;
         default:
           break;
-        
       }
     },
     [canvasRef, mazeSize, playerPosition, level_matrix]
