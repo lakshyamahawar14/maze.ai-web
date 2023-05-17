@@ -55,7 +55,7 @@ class KruskalMaze {
         legal_edges[y].push(x);
       }
 
-      if (Math.random() < 0.2) {
+      if (Math.random() < 0.3) {
         obstacles.push([x, y]);
       }
     }
