@@ -330,6 +330,10 @@ function Playground({ inputData }) {
   const [level_matrix, setLevelMatrix] = useState([]);
   const [requestID, setRequestID] = useState(1111);
   const [playerPosition, setPlayerPosition] = useState([]);
+  const [isVictory, setIsVictory] = useState(false);
+  if(isVictory === true){
+    setIsVictory(false)
+  }
 
   useEffect(() => {
     if (inputData.length !== 0) {
@@ -459,6 +463,7 @@ function Playground({ inputData }) {
 
       const drawPlayer = () => {
         p.stroke(255, 0, 0);
+        p.fill(255, 0, 0);
         p.strokeWeight(3);
         const X = canvasRef.current.offsetWidth;
         const Y = canvasRef.current.offsetHeight;
@@ -537,7 +542,8 @@ function Playground({ inputData }) {
         setPlayerPosition([playerPosition[0] + player_move, playerPosition[1]]);
         j += 1;
       }
-      if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+      if ((event.key === "w" || event.key === "W" || event.key === "s" || event.key === "S" || event.key === "a" || event.key === "A" || event.key === "d" || event.key === "D") && i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+        setIsVictory(true)
         alert("Victory!");
       }
     };
@@ -587,7 +593,11 @@ function Playground({ inputData }) {
             playerPosition[0],
             playerPosition[1] - player_move,
           ]);
-          i -= 1;
+          i -= 1
+          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+            setIsVictory(true)
+            alert("Victory!");
+          }
           break;
         case "down":
           if (i + 1 >= mazeSize[0] || level_matrix[2 * i + 1][2 * j] === 1) {
@@ -597,7 +607,11 @@ function Playground({ inputData }) {
             playerPosition[0],
             playerPosition[1] + player_move,
           ]);
-          i += 1;
+          i += 1
+          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+            setIsVictory(true)
+            alert("Victory!");
+          }
           break;
         case "left":
           if (j - 1 < 0 || level_matrix[2 * i][2 * j - 1] === 1) {
@@ -608,6 +622,10 @@ function Playground({ inputData }) {
             playerPosition[1],
           ]);
           j -= 1;
+          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+            setIsVictory(true)
+            alert("Victory!");
+          }
           break;
         case "right":
           if (j + 1 >= mazeSize[1] || level_matrix[2 * i][2 * j + 1] === 1) {
@@ -617,13 +635,15 @@ function Playground({ inputData }) {
             playerPosition[0] + player_move,
             playerPosition[1],
           ]);
-          j += 1;
+          j += 1
+          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
+            setIsVictory(true)
+            alert("Victory!");
+          }
           break;
         default:
           break;
-      }
-      if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
-        alert("Victory!");
+        
       }
     },
     [canvasRef, mazeSize, playerPosition, level_matrix]
@@ -636,13 +656,13 @@ function Playground({ inputData }) {
     if (Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX > 10) {
         return "right";
-      } else if (diffX < -10) {
+      } else if (diffX < -20) {
         return "left";
       }
     } else {
       if (diffY > 10) {
         return "down";
-      } else if (diffY < -10) {
+      } else if (diffY < -20) {
         return "up";
       }
     }
