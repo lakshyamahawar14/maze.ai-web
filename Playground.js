@@ -18,13 +18,7 @@ class KruskalMaze {
   getRandomEdgeWeights() {
     let edge_weights = [];
     for (let [x, y] of this.edges) {
-      let weight;
-      if (Math.random() < 0.2) {
-        weight = Math.floor(Math.random() * 4) + 5;
-      } else {
-        weight = Math.floor(Math.random() * 4) + 1;
-      }
-
+      let weight = Math.floor(Math.random() * 4) + 1;
       edge_weights.push([weight, x, y]);
     }
     return edge_weights;
@@ -32,34 +26,19 @@ class KruskalMaze {
 
   getLegalTraversalEdges() {
     let legal_edges = {};
-    let obstacles = [];
-
     for (let s of this.maze) {
       let [x, y] = s;
-
-      let isObstacle = obstacles.some(([ox, oy]) => x === ox && y === oy);
-
-      if (isObstacle) {
-        continue;
-      }
-
       if (!(x in legal_edges)) {
         legal_edges[x] = [y];
       } else {
         legal_edges[x].push(y);
       }
-
       if (!(y in legal_edges)) {
         legal_edges[y] = [x];
       } else {
         legal_edges[y].push(x);
       }
-
-      if (Math.random() < 0.3) {
-        obstacles.push([x, y]);
-      }
     }
-
     return legal_edges;
   }
 
@@ -98,6 +77,7 @@ class KruskalMaze {
     let ranks = {};
     let solution = new Set();
 
+    // Initialize clusters and ranks for each node
     for (let node of this.nodes) {
       clusters[node] = node;
       ranks[node] = 0;
@@ -122,18 +102,14 @@ class KruskalMaze {
       }
     }
 
+    // Sort the edges by weight in ascending order
     edgeWeights.sort((a, b) => a[0] - b[0]);
 
-    const desiredDensity = 1;
-
-    const numEdgesToInclude = Math.floor(edgeWeights.length * desiredDensity);
-
-    for (let i = 0; i < numEdgesToInclude; i++) {
-      let randomIndex = Math.floor(Math.random() * edgeWeights.length);
-      let [, x, y] = edgeWeights.splice(randomIndex, 1)[0];
-
+    // Apply Kruskal's algorithm to find minimum spanning tree
+    for (let [, x, y] of edgeWeights) {
       if (x !== y) {
         if (find(x) !== find(y)) {
+          // Add edge to solution
           solution.add([x, y]);
           union(x, y);
         }
@@ -348,17 +324,12 @@ class KruskalMaze {
 
 function Playground({ inputData }) {
   const canvasRef = useRef(null);
-  const canvasRef2 = useRef(null);
 
   const [mazeSize, setMazeSize] = useState([15, 15]);
   const [lines, setLines] = useState([]);
   const [level_matrix, setLevelMatrix] = useState([]);
   const [requestID, setRequestID] = useState(1111);
   const [playerPosition, setPlayerPosition] = useState([]);
-  const [isVictory, setIsVictory] = useState(false);
-  if (isVictory === true) {
-    setIsVictory(false);
-  }
 
   useEffect(() => {
     if (inputData.length !== 0) {
@@ -459,142 +430,62 @@ function Playground({ inputData }) {
   }, [addLines]);
 
   useEffect(() => {
-  const sketch = (p) => {
-    let canvas;
-    let canvasLines;
-    let canvasPlayer;
+    const sketch = (p) => {
+      let canvas;
 
-    p.setup = () => {
-      canvas = p.createCanvas(
-        canvasRef.current.offsetWidth,
-        canvasRef.current.offsetHeight
-      );
-      canvas.parent(canvasRef.current);
-      p.background(0, 0, 0, 0);
-
-      // Create a separate canvas for lines
-      canvasLines = p.createGraphics(
-        canvasRef.current.offsetWidth,
-        canvasRef.current.offsetHeight
-      );
-
-      // Create a separate canvas for player
-      canvasPlayer = p.createGraphics(
-        canvasRef.current.offsetWidth,
-        canvasRef.current.offsetHeight
-      );
-    };
-
-    p.draw = () => {
-      p.background(0, 0, 0, 0);
-
-      // Draw lines on the canvasLines
-      canvasLines.background(0, 0, 0, 0);
-      drawLinesOnCanvas(canvasLines);
-
-      // Draw player on the canvasPlayer
-      canvasPlayer.background(0, 0, 0, 0);
-
-      // Draw the canvasLines and canvasPlayer onto the main canvas
-      p.image(canvasLines, 0, 0);
-      p.image(canvasPlayer, 0, 0);
-    };
-
-    const drawLinesOnCanvas = (canvas) => {
-      canvas.stroke(0, 255, 75);
-      canvas.strokeWeight(3);
-      for (let i = 0; i < lines.length; i++) {
-        const { x1, y1, x2, y2 } = lines[i];
-        canvas.line(x1, y1, x2, y2);
-      }
-    };
-
-  };
-
-  if (lines.length === 0) {
-    return () => {};
-  }
-
-  const p5Instance = new p5(sketch);
-
-  return () => {
-    p5Instance.remove();
-  };
-}, [lines, mazeSize]);
-
-useEffect(() => {
-  const sketch = (p) => {
-    let canvas;
-    let canvasLines;
-    let canvasPlayer;
-
-    p.setup = () => {
-      canvas = p.createCanvas(
-        canvasRef.current.offsetWidth,
-        canvasRef.current.offsetHeight
-      );
-      canvas.parent(canvasRef2.current);
-      p.background(0, 0, 0, 0);
-
-      // Create a separate canvas for lines
-      canvasLines = p.createGraphics(
-        canvasRef.current.offsetWidth,
-        canvasRef.current.offsetHeight
-      );
-
-      // Create a separate canvas for player
-      canvasPlayer = p.createGraphics(
-        canvasRef.current.offsetWidth,
-        canvasRef.current.offsetHeight
-      );
-    };
-
-    p.draw = () => {
-      p.background(0, 0, 0, 0);
-
-      // Draw lines on the canvasLines
-      canvasLines.background(0, 0, 0, 0);
-
-      // Draw player on the canvasPlayer
-      canvasPlayer.background(0, 0, 0, 0);
-      drawPlayer(canvasPlayer);
-
-      // Draw the canvasLines and canvasPlayer onto the main canvas
-      p.image(canvasLines, 0, 0);
-      p.image(canvasPlayer, 0, 0);
-    };
-
-    const drawPlayer = (canvas) => {
-      canvas.stroke(255, 0, 0);
-      canvas.fill(255, 0, 0);
-      canvas.strokeWeight(3);
-      const X = canvasRef.current.offsetWidth;
-      const Y = canvasRef.current.offsetHeight;
-      let playerSize = 5;
-      if (X >= Y) {
-        playerSize = Math.floor(
-          Math.floor(Math.floor(Y / mazeSize[0]) * 0.8) / 8
+      p.setup = () => {
+        canvas = p.createCanvas(
+          canvasRef.current.offsetWidth,
+          canvasRef.current.offsetHeight
         );
-      } else {
-        playerSize = Math.floor(
-          Math.floor(Math.floor(X / mazeSize[1]) * 0.8) / 8
-        );
-      }
-      canvas.ellipse(playerPosition[0], playerPosition[1], playerSize, playerSize);
+        canvas.parent(canvasRef.current);
+        p.background(0, 0, 0, 0);
+      };
+
+      p.draw = () => {
+        p.background(0, 0, 0, 0);
+        drawLinesOnCanvas();
+        drawPlayer();
+      };
+
+      const drawLinesOnCanvas = () => {
+        p.stroke(0, 255, 75);
+        p.strokeWeight(3);
+        for (let i = 0; i < lines.length; i++) {
+          const { x1, y1, x2, y2 } = lines[i];
+          p.line(x1, y1, x2, y2);
+        }
+      };
+
+      const drawPlayer = () => {
+        p.stroke(255, 0, 0);
+        p.strokeWeight(3);
+        const X = canvasRef.current.offsetWidth;
+        const Y = canvasRef.current.offsetHeight;
+        var playerSize = 5;
+        if (X >= Y) {
+          playerSize = Math.floor(
+            Math.floor(Math.floor(Y / mazeSize[0]) * 0.8) / 8
+          );
+        } else {
+          playerSize = Math.floor(
+            Math.floor(Math.floor(X / mazeSize[1]) * 0.8) / 8
+          );
+        }
+        p.ellipse(playerPosition[0], playerPosition[1], playerSize, playerSize);
+      };
     };
-  };
 
-  if (lines.length === 0) {
-    return () => {};
-  }
+    if (lines.length === 0) {
+      return () => {};
+    }
 
-  const p5Instance = new p5(sketch);
+    const p5Instance = new p5(sketch);
 
-  return () => {
-    p5Instance.remove();
-  };
-}, [lines, mazeSize, playerPosition]);
-
+    return () => {
+      p5Instance.remove();
+    };
+  }, [lines, mazeSize, playerPosition]);
 
   useEffect(() => {
     const X = canvasRef.current.offsetWidth;
@@ -646,19 +537,7 @@ useEffect(() => {
         setPlayerPosition([playerPosition[0] + player_move, playerPosition[1]]);
         j += 1;
       }
-      if (
-        (event.key === "w" ||
-          event.key === "W" ||
-          event.key === "s" ||
-          event.key === "S" ||
-          event.key === "a" ||
-          event.key === "A" ||
-          event.key === "d" ||
-          event.key === "D") &&
-        i === mazeSize[1] - 1 &&
-        j === mazeSize[0] - 1
-      ) {
-        setIsVictory(true);
+      if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
         alert("Victory!");
       }
     };
@@ -708,9 +587,7 @@ useEffect(() => {
             playerPosition[0],
             playerPosition[1] - player_move,
           ]);
-          i -= 1;
-          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
-            setIsVictory(true);
+          if (i-1 === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
             alert("Victory!");
           }
           break;
@@ -722,9 +599,7 @@ useEffect(() => {
             playerPosition[0],
             playerPosition[1] + player_move,
           ]);
-          i += 1;
-          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
-            setIsVictory(true);
+          if (i+1 === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
             alert("Victory!");
           }
           break;
@@ -736,9 +611,7 @@ useEffect(() => {
             playerPosition[0] - player_move,
             playerPosition[1],
           ]);
-          j -= 1;
-          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
-            setIsVictory(true);
+          if (i === mazeSize[1] - 1 && j-1 === mazeSize[0] - 1) {
             alert("Victory!");
           }
           break;
@@ -750,9 +623,7 @@ useEffect(() => {
             playerPosition[0] + player_move,
             playerPosition[1],
           ]);
-          j += 1;
-          if (i === mazeSize[1] - 1 && j === mazeSize[0] - 1) {
-            setIsVictory(true);
+          if (i === mazeSize[1] - 1 && j+1 === mazeSize[0] - 1) {
             alert("Victory!");
           }
           break;
@@ -770,13 +641,13 @@ useEffect(() => {
     if (Math.abs(diffX) > Math.abs(diffY)) {
       if (diffX > 10) {
         return "right";
-      } else if (diffX < -20) {
+      } else if (diffX < -10) {
         return "left";
       }
     } else {
       if (diffY > 10) {
         return "down";
-      } else if (diffY < -20) {
+      } else if (diffY < -10) {
         return "up";
       }
     }
@@ -825,14 +696,8 @@ useEffect(() => {
   return (
     <div
       ref={canvasRef}
-      className="playground mt-[5vh] h-[80vh] h-max-[80vh] w-full w-max-full flex justify-center items-center absolute"
-    >
-      <div
-      ref={canvasRef2}
-      className="player h-[80vh] h-max-[80vh] w-full w-max-full flex justify-center items-center absolute"
+      className="playground mt-[10vh] h-[75vh] h-max-[75vh] w-full w-max-full flex justify-center items-center absolute"
     ></div>
-    </div>
-    
   );
 }
 
