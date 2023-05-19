@@ -502,7 +502,14 @@ function Playground({ inputData }) {
 
     const drawLinesOnCanvas = (canvas) => {
       canvas.stroke(0, 255, 75);
-      canvas.strokeWeight(3);
+      var strokeWeight = 3
+      if(mazeSize[0] > 20 && mazeSize[0] <= 35){
+        strokeWeight = 2
+      }
+      else if(mazeSize[0] > 35){
+        strokeWeight = 1
+      }
+      canvas.strokeWeight(strokeWeight);
       for (let i = 0; i < lines.length; i++) {
         const { x1, y1, x2, y2 } = lines[i];
         canvas.line(x1, y1, x2, y2);
@@ -567,7 +574,14 @@ useEffect(() => {
     const drawPlayer = (canvas) => {
       canvas.stroke(255, 0, 0);
       canvas.fill(255, 0, 0);
-      canvas.strokeWeight(3);
+      var strokeWeight = 3
+      if(mazeSize[0] > 20 && mazeSize[0] <= 35){
+        strokeWeight = 2
+      }
+      else if(mazeSize[0] > 35){
+        strokeWeight = 1
+      }
+      canvas.strokeWeight(strokeWeight);
       const X = canvasRef.current.offsetWidth;
       const Y = canvasRef.current.offsetHeight;
       let playerSize = 5;
