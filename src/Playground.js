@@ -845,13 +845,14 @@ useEffect(() => {
   return (
     <div
       ref={canvasRef}
-      className="playground mt-[5vh] h-[80vh] h-max-[80vh] w-full w-max-full flex justify-center items-center absolute"
+      className="playground mt-[15vh] h-[70vh] h-max-[70vh] w-full w-max-full flex justify-center items-center absolute"
     >
       <div
       ref={canvasRef2}
-      className="player h-[80vh] h-max-[80vh] w-full w-max-full flex justify-center items-center absolute"
+      className="player h-[70vh] h-max-[70vh] w-full w-max-full flex justify-center items-center absolute"
     ></div>
     </div>
+    
     
   );
 }

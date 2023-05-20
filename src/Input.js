@@ -6,6 +6,28 @@ function Input(props) {
   const [tempMazeSize, setTempMazeSize] = useState(mazeSize);
   const [time, setTime] = useState(0);
   const [score, setScore] = useState(0);
+  const [highscore, setHighscore] = useState(0);
+  
+
+  useEffect(() => {
+    const storedScore = localStorage.getItem("highscore");
+    if(storedScore != null){
+      setHighscore(parseInt(storedScore))
+    }
+    else{
+      localStorage.setItem("highscore", (0).toString());
+      setHighscore(0);
+    }
+  }, [highscore]);
+
+  useEffect(() => {
+    const storedScore = localStorage.getItem("highscore");
+    if (parseInt(storedScore) < score) {
+      console.log('set kardis')
+      localStorage.setItem("highscore", score.toString());
+      setHighscore(score)
+    }
+  }, [score]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -48,8 +70,8 @@ function Input(props) {
   };
 
   return (
-    <div className="input mt-[25px] h-[5vh] flex flex-col justify-center items-center">
-      <div className="flex items-center justify-center">
+    <div className="input h-[15vh] flex flex-col justify-center items-center">
+      <div className="flex mx-2 items-center justify-center">
         <label htmlFor="mazeSize">
           Maze Size:
           <input
@@ -66,22 +88,28 @@ function Input(props) {
         <input
           type="button"
           value={"Generate"}
-          className="cursor-pointer bg-[rgb(0,255,75)] text-[rgb(30,30,30)] outline-none font-bold px-2 rounded-sm hover:bg-[rgb(150,250,125)]"
+          className="cursor-pointer bg-[rgb(38,143,29)] outline-none font-bold px-2 rounded hover:bg-[rgb(27,110,6)] text-[#000000]"
           onClick={handleClick}
         ></input>
       </div>
       <div className="flex">
         <div
           id="time"
-          className="px-2 my-[15px] text-center rounded font-bold bg-[rgb(255,89,89)] text-black"
+          className="px-2 my-[15px] text-center rounded font-bold bg-[rgb(255,89,89)] text-[#000000]"
         >
           {time} sec
         </div>
         <div
           id="score"
-          className="px-2 mx-2 my-[15px] text-center rounded font-bold bg-[rgb(231,255,51)] text-black"
+          className="px-2 ml-2 my-[15px] text-center   rounded font-bold bg-[rgb(145,8,134)] text-[#000000]"
         >
           Score: {score}
+        </div>
+        <div
+          id="highscore"
+          className="px-2 ml-2 my-[15px] text-center rounded font-bold bg-[rgb(17,144,172)] text-[#000000]"
+        >
+          Highscore: {highscore}
         </div>
       </div>
     </div>
