@@ -3,8 +3,31 @@ import { useState, useEffect } from "react";
 
 function Input(props) {
   const [mazeSize, setMazeSize] = useState([15, 15]);
+  const [tempMazeSize, setTempMazeSize] = useState(mazeSize);
   const [time, setTime] = useState(0);
   const [score, setScore] = useState(0);
+  const [highscore, setHighscore] = useState(0);
+  
+
+  useEffect(() => {
+    const storedScore = localStorage.getItem("highscore");
+    if(storedScore != null){
+      setHighscore(parseInt(storedScore))
+    }
+    else{
+      localStorage.setItem("highscore", (0).toString());
+      setHighscore(0);
+    }
+  }, [highscore]);
+
+  useEffect(() => {
+    const storedScore = localStorage.getItem("highscore");
+    if (parseInt(storedScore) < score) {
+      console.log('set kardis')
+      localStorage.setItem("highscore", score.toString());
+      setHighscore(score)
+    }
+  }, [score]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -21,26 +44,34 @@ function Input(props) {
   }, []);
 
   const handleClick = () => {
-    if (mazeSize[0] === 0) {
+    if (tempMazeSize[0] === 0) {
       alert("Please Give Valid Maze Size!");
+      return
     }
-    const requestID = Math.floor(Math.random() * 10000) + 1;
+    setMazeSize(tempMazeSize);
     setTime(0)
-    setScore(score+mazeSize[0])
-    props.onInputChange([mazeSize, requestID]);
+    const requestID = Math.floor(Math.random() * 10000) + 1;
+    props.onInputChange([tempMazeSize, requestID]);
   };
+
+  useEffect(() => {
+    if(props.isVictory === true){
+      setScore(prevScore => prevScore + mazeSize[0]);
+    }
+  }, [props.isVictory, mazeSize]);
 
   const handleChange = () => {
     const inputSize = document.getElementById("mazeSize").value;
-    if (inputSize === "") {
-      setMazeSize([0, 0]);
+    if (inputSize === "" || isNaN(inputSize) === true || isNaN(parseInt(inputSize)) === true) {
+      setTempMazeSize([0, 0]);
     } else {
-      setMazeSize([parseInt(inputSize), parseInt(inputSize)]);
+      setTempMazeSize([parseInt(inputSize), parseInt(inputSize)]);
     }
   };
+
   return (
-    <div className="input mt-[25px] h-[5vh] flex flex-col justify-center items-center">
-      <div className="flex items-center justify-center">
+    <div className="input h-[15vh] flex flex-col justify-center items-center">
+      <div className="flex mx-2 items-center justify-center">
         <label htmlFor="mazeSize">
           Maze Size:
           <input
@@ -48,7 +79,7 @@ function Input(props) {
             className="px-2 mx-4 outline-none w-[75px] bg-transparent border-b-2 border-[rgb(0,255,75)]"
             id="mazeSize"
             name="mazeSize"
-            value={mazeSize[0]}
+            value={tempMazeSize[0]}
             onChange={handleChange}
             maxLength={2}
             placeholder="e.g. 25"
@@ -57,22 +88,28 @@ function Input(props) {
         <input
           type="button"
           value={"Generate"}
-          className="cursor-pointer bg-[rgb(0,255,75)] text-[rgb(30,30,30)] outline-none font-bold px-2 rounded-sm hover:bg-[rgb(150,250,125)]"
+          className="cursor-pointer bg-[rgb(82,255,66)] outline-none font-bold px-2 rounded hover:bg-[rgb(172,252,152)] text-[#000000]"
           onClick={handleClick}
         ></input>
       </div>
       <div className="flex">
         <div
           id="time"
-          className="px-2 my-[15px] text-center rounded font-bold bg-[rgb(255,89,89)] text-black"
+          className="px-2 my-[15px] text-center rounded font-bold bg-[rgb(255,76,76)] text-[#000000]"
         >
           {time} sec
         </div>
         <div
           id="score"
-          className="px-2 mx-2 my-[15px] text-center rounded font-bold bg-[rgb(231,255,51)] text-black"
+          className="px-2 ml-2 my-[15px] text-center   rounded font-bold bg-[rgb(255,85,241)] text-[#000000]"
         >
           Score: {score}
+        </div>
+        <div
+          id="highscore"
+          className="px-2 ml-2 my-[15px] text-center rounded font-bold bg-[rgb(86,224,255)] text-[#000000]"
+        >
+          Highscore: {highscore}
         </div>
       </div>
     </div>

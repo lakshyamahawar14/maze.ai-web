@@ -55,7 +55,7 @@ class KruskalMaze {
         legal_edges[y].push(x);
       }
 
-      if (Math.random() < 0.3) {
+      if (Math.random() < 0.2) {
         obstacles.push([x, y]);
       }
     }
@@ -346,8 +346,9 @@ class KruskalMaze {
   }
 }
 
-function Playground({ inputData }) {
+function Playground({inputData, onVictory}) {
   const canvasRef = useRef(null);
+  const canvasRef2 = useRef(null);
 
   const [mazeSize, setMazeSize] = useState([15, 15]);
   const [lines, setLines] = useState([]);
@@ -355,16 +356,22 @@ function Playground({ inputData }) {
   const [requestID, setRequestID] = useState(1111);
   const [playerPosition, setPlayerPosition] = useState([]);
   const [isVictory, setIsVictory] = useState(false);
-  if (isVictory === true) {
-    setIsVictory(false);
-  }
+
+  useEffect(() => {
+    setIsVictory(false)
+  }, [mazeSize])
 
   useEffect(() => {
     if (inputData.length !== 0) {
       setMazeSize(inputData[0]);
       setRequestID(inputData[1]);
+      setIsVictory(false)
     }
   }, [inputData]);
+
+  useEffect(() => {
+    onVictory(isVictory)
+  }, [isVictory, onVictory])
 
   const generateMaze = (height, width) => {
     const kruskalMaze = new KruskalMaze(height, width);
@@ -458,63 +465,158 @@ function Playground({ inputData }) {
   }, [addLines]);
 
   useEffect(() => {
-    const sketch = (p) => {
-      let canvas;
+  const sketch = (p) => {
+    let canvas;
+    let canvasLines;
+    let canvasPlayer;
 
-      p.setup = () => {
-        canvas = p.createCanvas(
-          canvasRef.current.offsetWidth,
-          canvasRef.current.offsetHeight
+    p.setup = () => {
+      canvas = p.createCanvas(
+        canvasRef.current.offsetWidth,
+        canvasRef.current.offsetHeight
+      );
+      canvas.parent(canvasRef.current);
+      p.background(0, 0, 0, 0);
+
+      // Create a separate canvas for lines
+      canvasLines = p.createGraphics(
+        canvasRef.current.offsetWidth,
+        canvasRef.current.offsetHeight
+      );
+
+      // Create a separate canvas for player
+      canvasPlayer = p.createGraphics(
+        canvasRef.current.offsetWidth,
+        canvasRef.current.offsetHeight
+      );
+    };
+
+    p.draw = () => {
+      p.background(0, 0, 0, 0);
+
+      // Draw lines on the canvasLines
+      canvasLines.background(0, 0, 0, 0);
+      drawLinesOnCanvas(canvasLines);
+
+      // Draw player on the canvasPlayer
+      canvasPlayer.background(0, 0, 0, 0);
+
+      // Draw the canvasLines and canvasPlayer onto the main canvas
+      p.image(canvasLines, 0, 0);
+      p.image(canvasPlayer, 0, 0);
+    };
+
+    const drawLinesOnCanvas = (canvas) => {
+      canvas.stroke(0, 255, 75);
+      var strokeWeight = 2
+      if(mazeSize[0] > 20 && mazeSize[0] <= 35){
+        strokeWeight = 2
+      }
+      else if(mazeSize[0] > 35){
+        strokeWeight = 1
+      }
+      canvas.strokeWeight(strokeWeight);
+      for (let i = 0; i < lines.length; i++) {
+        const { x1, y1, x2, y2 } = lines[i];
+        canvas.line(x1, y1, x2, y2);
+      }
+    };
+
+  };
+
+  if (lines.length === 0) {
+    return () => {};
+  }
+
+  const p5Instance = new p5(sketch);
+
+  return () => {
+    p5Instance.remove();
+  };
+}, [lines, mazeSize]);
+
+useEffect(() => {
+  const sketch = (p) => {
+    let canvas;
+    let canvasLines;
+    let canvasPlayer;
+
+    p.setup = () => {
+      canvas = p.createCanvas(
+        canvasRef.current.offsetWidth,
+        canvasRef.current.offsetHeight
+      );
+      canvas.parent(canvasRef2.current);
+      p.background(0, 0, 0, 0);
+
+      // Create a separate canvas for lines
+      canvasLines = p.createGraphics(
+        canvasRef.current.offsetWidth,
+        canvasRef.current.offsetHeight
+      );
+
+      // Create a separate canvas for player
+      canvasPlayer = p.createGraphics(
+        canvasRef.current.offsetWidth,
+        canvasRef.current.offsetHeight
+      );
+    };
+
+    p.draw = () => {
+      p.background(0, 0, 0, 0);
+
+      // Draw lines on the canvasLines
+      canvasLines.background(0, 0, 0, 0);
+
+      // Draw player on the canvasPlayer
+      canvasPlayer.background(0, 0, 0, 0);
+
+      
+      drawPlayer(canvasPlayer);
+
+      // Draw the canvasLines and canvasPlayer onto the main canvas
+      p.image(canvasLines, 0, 0);
+      p.image(canvasPlayer, 0, 0);
+    };
+
+    const drawPlayer = (canvas) => {
+      canvas.stroke(255, 0, 0);
+      canvas.fill(255, 0, 0);
+      var strokeWeight = 2
+      if(mazeSize[0] > 20 && mazeSize[0] <= 35){
+        strokeWeight = 2
+      }
+      else if(mazeSize[0] > 35){
+        strokeWeight = 1
+      }
+      canvas.strokeWeight(strokeWeight);
+      const X = canvasRef.current.offsetWidth;
+      const Y = canvasRef.current.offsetHeight;
+      let playerSize = 5;
+      if (X >= Y) {
+        playerSize = Math.floor(
+          Math.floor(Math.floor(Y / mazeSize[0]) * 0.8) / 8
         );
-        canvas.parent(canvasRef.current);
-        p.background(0, 0, 0, 0);
-      };
-
-      p.draw = () => {
-        p.background(0, 0, 0, 0);
-        drawLinesOnCanvas();
-        drawPlayer();
-      };
-
-      const drawLinesOnCanvas = () => {
-        p.stroke(0, 255, 75);
-        p.strokeWeight(3);
-        for (let i = 0; i < lines.length; i++) {
-          const { x1, y1, x2, y2 } = lines[i];
-          p.line(x1, y1, x2, y2);
-        }
-      };
-
-      const drawPlayer = () => {
-        p.stroke(255, 0, 0);
-        p.fill(255, 0, 0);
-        p.strokeWeight(3);
-        const X = canvasRef.current.offsetWidth;
-        const Y = canvasRef.current.offsetHeight;
-        var playerSize = 5;
-        if (X >= Y) {
-          playerSize = Math.floor(
-            Math.floor(Math.floor(Y / mazeSize[0]) * 0.8) / 8
-          );
-        } else {
-          playerSize = Math.floor(
-            Math.floor(Math.floor(X / mazeSize[1]) * 0.8) / 8
-          );
-        }
-        p.ellipse(playerPosition[0], playerPosition[1], playerSize, playerSize);
-      };
+      } else {
+        playerSize = Math.floor(
+          Math.floor(Math.floor(X / mazeSize[1]) * 0.8) / 8
+        );
+      }
+      canvas.ellipse(playerPosition[0], playerPosition[1], playerSize, playerSize);
     };
+  };
 
-    if (lines.length === 0) {
-      return () => {};
-    }
+  if (lines.length === 0) {
+    return () => {};
+  }
 
-    const p5Instance = new p5(sketch);
+  const p5Instance = new p5(sketch);
 
-    return () => {
-      p5Instance.remove();
-    };
-  }, [lines, mazeSize, playerPosition]);
+  return () => {
+    p5Instance.remove();
+  };
+}, [lines, mazeSize, playerPosition]);
+
 
   useEffect(() => {
     const X = canvasRef.current.offsetWidth;
@@ -745,8 +847,15 @@ function Playground({ inputData }) {
   return (
     <div
       ref={canvasRef}
-      className="playground mt-[5vh] h-[80vh] h-max-[80vh] w-full w-max-full flex justify-center items-center absolute"
+      className="playground mt-[15vh] h-[70vh] h-max-[70vh] w-full w-max-full flex justify-center items-center absolute"
+    >
+      <div
+      ref={canvasRef2}
+      className="player h-[70vh] h-max-[70vh] w-full w-max-full flex justify-center items-center absolute"
     ></div>
+    </div>
+    
+    
   );
 }
 
