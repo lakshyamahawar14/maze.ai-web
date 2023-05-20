@@ -88,26 +88,26 @@ function Input(props) {
         <input
           type="button"
           value={"Generate"}
-          className="cursor-pointer bg-[rgb(38,143,29)] outline-none font-bold px-2 rounded hover:bg-[rgb(27,110,6)] text-[#000000]"
+          className="cursor-pointer bg-[rgb(82,255,66)] outline-none font-bold px-2 rounded hover:bg-[rgb(172,252,152)] text-[#000000]"
           onClick={handleClick}
         ></input>
       </div>
       <div className="flex">
         <div
           id="time"
-          className="px-2 my-[15px] text-center rounded font-bold bg-[rgb(255,89,89)] text-[#000000]"
+          className="px-2 my-[15px] text-center rounded font-bold bg-[rgb(255,76,76)] text-[#000000]"
         >
           {time} sec
         </div>
         <div
           id="score"
-          className="px-2 ml-2 my-[15px] text-center   rounded font-bold bg-[rgb(145,8,134)] text-[#000000]"
+          className="px-2 ml-2 my-[15px] text-center   rounded font-bold bg-[rgb(255,85,241)] text-[#000000]"
         >
           Score: {score}
         </div>
         <div
           id="highscore"
-          className="px-2 ml-2 my-[15px] text-center rounded font-bold bg-[rgb(17,144,172)] text-[#000000]"
+          className="px-2 ml-2 my-[15px] text-center rounded font-bold bg-[rgb(86,224,255)] text-[#000000]"
         >
           Highscore: {highscore}
         </div>
