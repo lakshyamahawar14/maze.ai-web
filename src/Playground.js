@@ -395,9 +395,9 @@ function Playground({inputData, onVictory}) {
     const col_size = (level_matrix[0].length + 1) / 2;
     var offset = 18;
     if (X >= Y) {
-      offset = Math.floor(Math.floor(Y / row_size) * 0.8);
+      offset = ((Y / row_size) * 0.90);
     } else {
-      offset = Math.floor(Math.floor(X / col_size) * 0.8);
+      offset = ((X / col_size) * 0.90);
     }
 
     const rows = 2 * row_size - 1;
@@ -405,10 +405,10 @@ function Playground({inputData, onVictory}) {
 
     var initialLines = [];
 
-    var x = Math.floor(X / 2) - Math.floor(offset / 2) * col_size;
-    var y = Math.floor(Y / 2) - Math.floor(offset / 2) * row_size;
+    var x = (X / 2) - (offset / 2) * col_size;
+    var y = (Y / 2) - (offset / 2) * row_size;
 
-    setPlayerPosition([x + Math.floor(offset / 2), y + Math.floor(offset / 2)]);
+    setPlayerPosition([x + (offset / 2), y + (offset / 2)]);
 
     var i;
     for (i = 0; i < col_size; ++i) {
@@ -595,11 +595,11 @@ useEffect(() => {
       let playerSize = 5;
       if (X >= Y) {
         playerSize = Math.floor(
-          Math.floor(Math.floor(Y / mazeSize[0]) * 0.8) / 8
+          ((Y / mazeSize[0]) * 0.90) / 8
         );
       } else {
         playerSize = Math.floor(
-          Math.floor(Math.floor(X / mazeSize[1]) * 0.8) / 8
+        ((X / mazeSize[1]) * 0.90) / 8
         );
       }
       canvas.ellipse(playerPosition[0], playerPosition[1], playerSize, playerSize);
@@ -623,24 +623,24 @@ useEffect(() => {
     const Y = canvasRef.current.offsetHeight;
     var player_move;
     if (X >= Y) {
-      player_move = Math.floor(Math.floor(Y / mazeSize[0]) * 0.8);
+      player_move = ((Y / mazeSize[0]) * 0.90);
     } else {
-      player_move = Math.floor(Math.floor(X / mazeSize[1]) * 0.8);
+      player_move = ((X / mazeSize[1]) * 0.90);
     }
 
     const handleKeyPress = (event) => {
-      let j = Math.floor(
+      let j = Math.round(
         (playerPosition[0] -
-          (Math.floor(X / 2) -
-            mazeSize[1] * Math.floor(player_move / 2) +
-            Math.floor(player_move / 2))) /
+          ((X / 2) -
+            mazeSize[1] * (player_move / 2) +
+            (player_move / 2))) /
           player_move
       );
-      let i = Math.floor(
+      let i = Math.round(
         (playerPosition[1] -
-          (Math.floor(Y / 2) -
-            mazeSize[0] * Math.floor(player_move / 2) +
-            Math.floor(player_move / 2))) /
+          ((Y / 2) -
+            mazeSize[0] * (player_move / 2) +
+            (player_move / 2))) /
           player_move
       );
       if (event.key === "w" || event.key === "W") {
@@ -701,23 +701,23 @@ useEffect(() => {
       let player_move;
 
       if (X >= Y) {
-        player_move = Math.floor(Math.floor(Y / mazeSize[0]) * 0.8);
+        player_move = ((Y / mazeSize[0]) * 0.90);
       } else {
-        player_move = Math.floor(Math.floor(X / mazeSize[1]) * 0.8);
+        player_move = ((X / mazeSize[1]) * 0.90);
       }
 
-      let j = Math.floor(
+      let j = Math.round(
         (playerPosition[0] -
-          (Math.floor(X / 2) -
-            mazeSize[1] * Math.floor(player_move / 2) +
-            Math.floor(player_move / 2))) /
+          ((X / 2) -
+            mazeSize[1] * (player_move / 2) +
+            (player_move / 2))) /
           player_move
       );
-      let i = Math.floor(
+      let i = Math.round(
         (playerPosition[1] -
-          (Math.floor(Y / 2) -
-            mazeSize[0] * Math.floor(player_move / 2) +
-            Math.floor(player_move / 2))) /
+          ((Y / 2) -
+            mazeSize[0] * (player_move / 2) +
+            (player_move / 2))) /
           player_move
       );
 
@@ -790,13 +790,13 @@ useEffect(() => {
     const diffY = endY - startY;
 
     if (Math.abs(diffX) > Math.abs(diffY)) {
-      if (diffX > 10) {
+      if (diffX > 20) {
         return "right";
       } else if (diffX < -20) {
         return "left";
       }
     } else {
-      if (diffY > 10) {
+      if (diffY > 20) {
         return "down";
       } else if (diffY < -20) {
         return "up";
