@@ -19,7 +19,7 @@ class KruskalMaze {
     let edge_weights = [];
     for (let [x, y] of this.edges) {
       let weight;
-      if (Math.random() < 0.3) {
+      if (Math.random() < 0.2) {
         weight = Math.floor(Math.random() * 4) + 5;
       } else {
         weight = Math.floor(Math.random() * 4) + 1;
@@ -55,7 +55,7 @@ class KruskalMaze {
         legal_edges[y].push(x);
       }
 
-      if (Math.random() < 0.3) {
+      if (Math.random() < 0.2) {
         obstacles.push([x, y]);
       }
     }
@@ -508,7 +508,7 @@ function Playground({inputData, onVictory}) {
 
     const drawLinesOnCanvas = (canvas) => {
       canvas.stroke(0, 255, 75);
-      var strokeWeight = 3
+      var strokeWeight = 2
       if(mazeSize[0] > 20 && mazeSize[0] <= 35){
         strokeWeight = 2
       }
@@ -570,6 +570,8 @@ useEffect(() => {
 
       // Draw player on the canvasPlayer
       canvasPlayer.background(0, 0, 0, 0);
+
+      
       drawPlayer(canvasPlayer);
 
       // Draw the canvasLines and canvasPlayer onto the main canvas
@@ -580,7 +582,7 @@ useEffect(() => {
     const drawPlayer = (canvas) => {
       canvas.stroke(255, 0, 0);
       canvas.fill(255, 0, 0);
-      var strokeWeight = 3
+      var strokeWeight = 2
       if(mazeSize[0] > 20 && mazeSize[0] <= 35){
         strokeWeight = 2
       }
