@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 
 function Input(props) {
   const [mazeSize, setMazeSize] = useState([15, 15]);
+  const [tempMazeSize, setTempMazeSize] = useState(mazeSize);
   const [time, setTime] = useState(0);
   const [score, setScore] = useState(0);
 
@@ -21,23 +22,31 @@ function Input(props) {
   }, []);
 
   const handleClick = () => {
-    if (mazeSize[0] === 0) {
+    if (tempMazeSize[0] === 0) {
       alert("Please Give Valid Maze Size!");
+      return
     }
-    const requestID = Math.floor(Math.random() * 10000) + 1;
+    setMazeSize(tempMazeSize);
     setTime(0)
-    setScore(score+mazeSize[0])
-    props.onInputChange([mazeSize, requestID]);
+    const requestID = Math.floor(Math.random() * 10000) + 1;
+    props.onInputChange([tempMazeSize, requestID]);
   };
+
+  useEffect(() => {
+    if(props.isVictory === true){
+      setScore(prevScore => prevScore + mazeSize[0]);
+    }
+  }, [props.isVictory, mazeSize]);
 
   const handleChange = () => {
     const inputSize = document.getElementById("mazeSize").value;
     if (inputSize === "" || isNaN(inputSize) === true || isNaN(parseInt(inputSize)) === true) {
-      setMazeSize([0, 0]);
+      setTempMazeSize([0, 0]);
     } else {
-      setMazeSize([parseInt(inputSize), parseInt(inputSize)]);
+      setTempMazeSize([parseInt(inputSize), parseInt(inputSize)]);
     }
   };
+
   return (
     <div className="input mt-[25px] h-[5vh] flex flex-col justify-center items-center">
       <div className="flex items-center justify-center">
@@ -48,7 +57,7 @@ function Input(props) {
             className="px-2 mx-4 outline-none w-[75px] bg-transparent border-b-2 border-[rgb(0,255,75)]"
             id="mazeSize"
             name="mazeSize"
-            value={mazeSize[0]}
+            value={tempMazeSize[0]}
             onChange={handleChange}
             maxLength={2}
             placeholder="e.g. 25"

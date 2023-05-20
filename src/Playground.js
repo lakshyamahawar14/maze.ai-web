@@ -19,7 +19,7 @@ class KruskalMaze {
     let edge_weights = [];
     for (let [x, y] of this.edges) {
       let weight;
-      if (Math.random() < 0.2) {
+      if (Math.random() < 0.3) {
         weight = Math.floor(Math.random() * 4) + 5;
       } else {
         weight = Math.floor(Math.random() * 4) + 1;
@@ -346,7 +346,7 @@ class KruskalMaze {
   }
 }
 
-function Playground({ inputData }) {
+function Playground({inputData, onVictory}) {
   const canvasRef = useRef(null);
   const canvasRef2 = useRef(null);
 
@@ -356,16 +356,22 @@ function Playground({ inputData }) {
   const [requestID, setRequestID] = useState(1111);
   const [playerPosition, setPlayerPosition] = useState([]);
   const [isVictory, setIsVictory] = useState(false);
-  if (isVictory === true) {
-    setIsVictory(false);
-  }
+
+  useEffect(() => {
+    setIsVictory(false)
+  }, [mazeSize])
 
   useEffect(() => {
     if (inputData.length !== 0) {
       setMazeSize(inputData[0]);
       setRequestID(inputData[1]);
+      setIsVictory(false)
     }
   }, [inputData]);
+
+  useEffect(() => {
+    onVictory(isVictory)
+  }, [isVictory, onVictory])
 
   const generateMaze = (height, width) => {
     const kruskalMaze = new KruskalMaze(height, width);
