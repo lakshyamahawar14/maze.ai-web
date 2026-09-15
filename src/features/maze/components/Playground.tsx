@@ -39,7 +39,7 @@ function Playground() {
             </div>
             <button
               type="button"
-              className="w-full cursor-pointer bg-[var(--color-btn-new)] hover:bg-[var(--color-btn-new-hover)] text-black text-body font-bold py-2 px-4 rounded transition-colors flex items-center justify-center gap-2"
+              className="w-full cursor-pointer bg-[var(--color-btn-new)] hover:bg-[var(--color-btn-new-hover)] text-black text-body font-bold py-2 px-4 rounded flex items-center justify-center gap-2"
               onClick={nextLevel}
             >
               Next Maze
@@ -66,7 +66,7 @@ function Playground() {
             </div>
             <button
               type="button"
-              className="w-full cursor-pointer bg-[var(--color-btn-new)] hover:bg-[var(--color-btn-new-hover)] text-black text-body font-bold py-2 px-4 rounded transition-colors flex items-center justify-center gap-2"
+              className="w-full cursor-pointer bg-[var(--color-btn-new)] hover:bg-[var(--color-btn-new-hover)] text-black text-body font-bold py-2 px-4 rounded flex items-center justify-center gap-2"
               onClick={playAgain}
             >
               Play Again

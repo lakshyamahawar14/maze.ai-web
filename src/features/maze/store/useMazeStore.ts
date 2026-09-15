@@ -10,10 +10,13 @@ interface MazeState {
   isVictory: boolean;
   isGameOver: boolean;
   hasStarted: boolean;
+  isSolving: boolean;
   moveCount: number;
   lastEarned: number;
   mazeSeed: number;
   resetKey: number;
+  solutionPath: [number, number][];
+  revealedSolutionCount: number;
 
   setTempSize: (size: number) => void;
   startGame: () => void;
@@ -24,6 +27,9 @@ interface MazeState {
   playAgain: () => void;
   decrementTime: () => void;
   setVictory: () => void;
+  setSolutionPath: (path: [number, number][]) => void;
+  incrementRevealedSolution: () => void;
+  setIsSolving: (status: boolean) => void;
 }
 
 export const useMazeStore = create<MazeState>()((set, get) => ({
@@ -35,10 +41,13 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
   isVictory: false,
   isGameOver: false,
   hasStarted: false,
+  isSolving: false,
   moveCount: 0,
   lastEarned: 0,
   mazeSeed: 1,
   resetKey: 0,
+  solutionPath: [],
+  revealedSolutionCount: 0,
 
   setTempSize: (size: number) =>
     set({
@@ -53,6 +62,9 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       timeLeft: MAZE_CONFIG.INITIAL_TIME_SECONDS,
       isVictory: false,
       isGameOver: false,
+      isSolving: false,
+      solutionPath: [],
+      revealedSolutionCount: 0,
       moveCount: 0,
     });
   },
@@ -68,8 +80,11 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       isVictory: false,
       isGameOver: false,
       hasStarted: false,
+      isSolving: false,
       moveCount: 0,
       lastEarned: 0,
+      solutionPath: [],
+      revealedSolutionCount: 0,
       mazeSeed: Date.now() + Math.random(),
       resetKey: 0,
     });
@@ -80,8 +95,12 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       timeLeft: MAZE_CONFIG.INITIAL_TIME_SECONDS,
       isVictory: false,
       isGameOver: false,
+      hasStarted: false,
+      isSolving: false,
       moveCount: 0,
       lastEarned: 0,
+      solutionPath: [],
+      revealedSolutionCount: 0,
       resetKey: state.resetKey + 1,
     }));
   },
@@ -96,8 +115,11 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       isVictory: false,
       isGameOver: false,
       hasStarted: true,
+      isSolving: false,
       moveCount: 0,
       lastEarned: 0,
+      solutionPath: [],
+      revealedSolutionCount: 0,
       mazeSeed: Date.now() + Math.random(),
       resetKey: 0,
     });
@@ -112,8 +134,11 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       isVictory: false,
       isGameOver: false,
       hasStarted: false,
+      isSolving: false,
       moveCount: 0,
       lastEarned: 0,
+      solutionPath: [],
+      revealedSolutionCount: 0,
       mazeSeed: Date.now() + Math.random(),
       resetKey: 0,
     });
@@ -168,4 +193,14 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       });
     }
   },
+
+  setSolutionPath: (path: [number, number][]) =>
+    set({ solutionPath: path, revealedSolutionCount: 0 }),
+
+  incrementRevealedSolution: () =>
+    set((state: MazeState) => ({
+      revealedSolutionCount: state.revealedSolutionCount + 1,
+    })),
+
+  setIsSolving: (status: boolean) => set({ isSolving: status }),
 }));

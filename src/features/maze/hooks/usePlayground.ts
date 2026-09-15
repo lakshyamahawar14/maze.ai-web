@@ -3,6 +3,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { KruskalMaze } from "../algorithms/kruskal";
 import { useMazeStore } from "../store/useMazeStore";
 import { MAZE_CONFIG } from "../constants/config";
+import { soundManager } from "../utils/sound";
 import type { LineCoord } from "../types";
 
 export function usePlayground() {
@@ -15,6 +16,9 @@ export function usePlayground() {
   const isVictory = useMazeStore((state) => state.isVictory);
   const isGameOver = useMazeStore((state) => state.isGameOver);
   const hasStarted = useMazeStore((state) => state.hasStarted);
+  const isSolving = useMazeStore((state) => state.isSolving);
+  const solutionPath = useMazeStore((state) => state.solutionPath);
+  const revealedSolutionCount = useMazeStore((state) => state.revealedSolutionCount);
   const timeLeft = useMazeStore((state) => state.timeLeft);
   const score = useMazeStore((state) => state.score);
   const lastEarned = useMazeStore((state) => state.lastEarned);
@@ -205,19 +209,32 @@ export function usePlayground() {
           p.image(mazeBuffer, 0, 0);
         }
 
-        const [col, row] = playerGridRef.current;
         const { startX, startY, offset } = layoutMetricsRef.current;
-        if (offset > 0) {
-          const px = startX + col * offset + Math.floor(offset / 2);
-          const py = startY + row * offset + Math.floor(offset / 2);
-          const playerSize = Math.max(
-            MAZE_CONFIG.MIN_PLAYER_SIZE,
-            Math.floor(offset / MAZE_CONFIG.PLAYER_SIZE_DIVISOR)
-          );
+        if (offset <= 0) return;
+
+        if (solutionPath.length > 0 && revealedSolutionCount > 0) {
+          const dotRadius = Math.max(2, Math.floor(offset / 4));
           p.noStroke();
-          p.fill(255);
-          p.ellipse(px, py, playerSize, playerSize);
+          p.fill(234, 179, 8);
+          const limit = Math.min(revealedSolutionCount, solutionPath.length);
+          for (let idx = 0; idx < limit; idx++) {
+            const [sc, sr] = solutionPath[idx];
+            const sx = startX + sc * offset + Math.floor(offset / 2);
+            const sy = startY + sr * offset + Math.floor(offset / 2);
+            p.ellipse(sx, sy, dotRadius, dotRadius);
+          }
         }
+
+        const [col, row] = playerGridRef.current;
+        const px = startX + col * offset + Math.floor(offset / 2);
+        const py = startY + row * offset + Math.floor(offset / 2);
+        const playerSize = Math.max(
+          MAZE_CONFIG.MIN_PLAYER_SIZE,
+          Math.floor(offset / MAZE_CONFIG.PLAYER_SIZE_DIVISOR)
+        );
+        p.noStroke();
+        p.fill(255);
+        p.ellipse(px, py, playerSize, playerSize);
       };
 
       p.windowResized = () => {
@@ -248,11 +265,11 @@ export function usePlayground() {
       instance.remove();
       p5InstanceRef.current = null;
     };
-  }, [mazeSeed, mazeSize, rebuildMazeGeometry, getContentDimensions]);
+  }, [mazeSeed, mazeSize, rebuildMazeGeometry, getContentDimensions, solutionPath, revealedSolutionCount]);
 
   const movePlayer = useCallback(
     (direction: "up" | "down" | "left" | "right") => {
-      if (!hasStarted || isVictory || isGameOver) return;
+      if (!hasStarted || isVictory || isGameOver || isSolving) return;
 
       const currentMazeSize = mazeSizeRef.current;
       const currentMatrix = levelMatrixRef.current;
@@ -260,34 +277,46 @@ export function usePlayground() {
       if (currentMatrix.length === 0) return;
 
       let [col, row] = playerGridRef.current;
+      let moved = false;
 
       if (direction === "up") {
-        if (row - 1 < 0 || currentMatrix[2 * row - 1]?.[2 * col] === 1) return;
-        row -= 1;
+        if (row - 1 >= 0 && currentMatrix[2 * row - 1]?.[2 * col] !== 1) {
+          row -= 1;
+          moved = true;
+        }
       } else if (direction === "down") {
-        if (row + 1 >= currentMazeSize[0] || currentMatrix[2 * row + 1]?.[2 * col] === 1) return;
-        row += 1;
+        if (row + 1 < currentMazeSize[0] && currentMatrix[2 * row + 1]?.[2 * col] !== 1) {
+          row += 1;
+          moved = true;
+        }
       } else if (direction === "left") {
-        if (col - 1 < 0 || currentMatrix[2 * row]?.[2 * col - 1] === 1) return;
-        col -= 1;
+        if (col - 1 >= 0 && currentMatrix[2 * row]?.[2 * col - 1] !== 1) {
+          col -= 1;
+          moved = true;
+        }
       } else if (direction === "right") {
-        if (col + 1 >= currentMazeSize[1] || currentMatrix[2 * row]?.[2 * col + 1] === 1) return;
-        col += 1;
+        if (col + 1 < currentMazeSize[1] && currentMatrix[2 * row]?.[2 * col + 1] !== 1) {
+          col += 1;
+          moved = true;
+        }
       }
 
-      playerGridRef.current = [col, row];
-      incrementMoveCount();
+      if (moved) {
+        playerGridRef.current = [col, row];
+        incrementMoveCount();
+        soundManager.playMoveSound();
 
-      if (row === currentMazeSize[0] - 1 && col === currentMazeSize[1] - 1) {
-        setVictory();
+        if (row === currentMazeSize[0] - 1 && col === currentMazeSize[1] - 1) {
+          setVictory();
+        }
       }
     },
-    [hasStarted, isVictory, isGameOver, incrementMoveCount, setVictory]
+    [hasStarted, isVictory, isGameOver, isSolving, incrementMoveCount, setVictory]
   );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!hasStarted || isVictory || isGameOver) return;
+      if (!hasStarted || isVictory || isGameOver || isSolving) return;
       const key = e.key.toLowerCase();
       if (key === "w" || key === "arrowup") movePlayer("up");
       else if (key === "s" || key === "arrowdown") movePlayer("down");
@@ -297,20 +326,20 @@ export function usePlayground() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [hasStarted, isVictory, isGameOver, movePlayer]);
+  }, [hasStarted, isVictory, isGameOver, isSolving, movePlayer]);
 
   const handleTouchStart = useCallback(
     (e: TouchEvent) => {
-      if (!hasStarted || isVictory || isGameOver) return;
+      if (!hasStarted || isVictory || isGameOver || isSolving) return;
       const touch = e.touches[0];
       touchStartRef.current = { x: touch.clientX, y: touch.clientY };
     },
-    [hasStarted, isVictory, isGameOver]
+    [hasStarted, isVictory, isGameOver, isSolving]
   );
 
   const handleTouchEnd = useCallback(
     (e: TouchEvent) => {
-      if (!hasStarted || isVictory || isGameOver || !touchStartRef.current) return;
+      if (!hasStarted || isVictory || isGameOver || isSolving || !touchStartRef.current) return;
       const touch = e.changedTouches[0];
       const dx = touch.clientX - touchStartRef.current.x;
       const dy = touch.clientY - touchStartRef.current.y;
@@ -324,7 +353,7 @@ export function usePlayground() {
       }
       touchStartRef.current = null;
     },
-    [hasStarted, isVictory, isGameOver, movePlayer]
+    [hasStarted, isVictory, isGameOver, isSolving, movePlayer]
   );
 
   useEffect(() => {
@@ -353,5 +382,6 @@ export function usePlayground() {
     lastEarned,
     nextLevel,
     playAgain,
+    levelMatrixRef,
   };
 }
