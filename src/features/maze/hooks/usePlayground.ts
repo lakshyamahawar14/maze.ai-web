@@ -4,6 +4,7 @@ import { KruskalMaze } from "../algorithms/kruskal";
 import { useMazeStore } from "../store/useMazeStore";
 import { MAZE_CONFIG } from "../constants/config";
 import { soundManager } from "../utils/sound";
+import { getHedgeSvgVariant } from "../utils/hedgeSvgGenerator";
 import type { LineCoord } from "../types";
 
 export function usePlayground() {
@@ -15,11 +16,7 @@ export function usePlayground() {
   const resetKey = useMazeStore((state) => state.resetKey);
   const isVictory = useMazeStore((state) => state.isVictory);
   const isGameOver = useMazeStore((state) => state.isGameOver);
-  const hasStarted = useMazeStore((state) => state.hasStarted);
   const isSolving = useMazeStore((state) => state.isSolving);
-  const playerTrail = useMazeStore((state) => state.playerTrail);
-  const solutionPath = useMazeStore((state) => state.solutionPath);
-  const revealedSolutionCount = useMazeStore((state) => state.revealedSolutionCount);
   const timeLeft = useMazeStore((state) => state.timeLeft);
   const score = useMazeStore((state) => state.score);
   const lastEarned = useMazeStore((state) => state.lastEarned);
@@ -40,6 +37,50 @@ export function usePlayground() {
     offset: 0,
   });
 
+  const hasStartedRef = useRef<boolean>(false);
+  const playerTrailRef = useRef<[number, number][]>([[0, 0]]);
+  const solutionPathRef = useRef<[number, number][]>([]);
+  const revealedSolutionCountRef = useRef<number>(0);
+  const bufferGenRef = useRef<number>(0);
+
+  useEffect(() => {
+    const unsubStarted = useMazeStore.subscribe(
+      (state) => state.hasStarted,
+      (val: boolean) => {
+        hasStartedRef.current = val;
+      },
+      { fireImmediately: true }
+    );
+    const unsubTrail = useMazeStore.subscribe(
+      (state) => state.playerTrail,
+      (val: [number, number][]) => {
+        playerTrailRef.current = Array.isArray(val) ? val : [[0, 0]];
+      },
+      { fireImmediately: true }
+    );
+    const unsubPath = useMazeStore.subscribe(
+      (state) => state.solutionPath,
+      (val: [number, number][]) => {
+        solutionPathRef.current = Array.isArray(val) ? val : [];
+      },
+      { fireImmediately: true }
+    );
+    const unsubCount = useMazeStore.subscribe(
+      (state) => state.revealedSolutionCount,
+      (val: number) => {
+        revealedSolutionCountRef.current = val;
+      },
+      { fireImmediately: true }
+    );
+
+    return () => {
+      unsubStarted();
+      unsubTrail();
+      unsubPath();
+      unsubCount();
+    };
+  }, []);
+
   useEffect(() => {
     mazeSizeRef.current = mazeSize;
   }, [mazeSize]);
@@ -57,7 +98,7 @@ export function usePlayground() {
 
   const rebuildMazeGeometry = useCallback((width: number, height: number) => {
     const matrix = levelMatrixRef.current;
-    if (matrix.length === 0 || width <= 0 || height <= 0) return;
+    if (!Array.isArray(matrix) || matrix.length === 0 || width <= 0 || height <= 0) return;
 
     const rowSize = mazeSizeRef.current[0];
     const colSize = mazeSizeRef.current[1];
@@ -116,7 +157,7 @@ export function usePlayground() {
 
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < cols; j++) {
-        if (i % 2 === 0 && j % 2 === 1 && matrix[i][j] === 1) {
+        if (i % 2 === 0 && j % 2 === 1 && matrix[i]?.[j] === 1) {
           const cellX = startX + Math.floor((j + 1) / 2) * offset;
           const cellY = startY + Math.floor(i / 2) * offset;
           initialLines.push({
@@ -125,7 +166,7 @@ export function usePlayground() {
             x2: cellX,
             y2: cellY + offset,
           });
-        } else if (i % 2 === 1 && j % 2 === 0 && matrix[i][j] === 1) {
+        } else if (i % 2 === 1 && j % 2 === 0 && matrix[i]?.[j] === 1) {
           const cellX = startX + Math.floor(j / 2) * offset;
           const cellY = startY + Math.floor((i + 1) / 2) * offset;
           initialLines.push({
@@ -163,11 +204,24 @@ export function usePlayground() {
 
     const sketch = (p: p5) => {
       let mazeBuffer: p5.Graphics;
+      const cachedImages = new Map<string, p5.Image>();
+
+      const preloadStaticVariants = () => {
+        for (let i = 0; i < 5; i++) {
+          const hUri = getHedgeSvgVariant("horizontal", i);
+          const vUri = getHedgeSvgVariant("vertical", i);
+          p.loadImage(hUri, (img) => cachedImages.set(hUri, img));
+          p.loadImage(vUri, (img) => cachedImages.set(vUri, img));
+        }
+      };
 
       const refreshBuffer = () => {
         const w = p.width;
         const h = p.height;
         if (w <= 0 || h <= 0) return;
+
+        bufferGenRef.current += 1;
+        const currentGen = bufferGenRef.current;
 
         rebuildMazeGeometry(w, h);
 
@@ -177,23 +231,68 @@ export function usePlayground() {
 
         mazeBuffer = p.createGraphics(w, h);
         mazeBuffer.clear();
-        mazeBuffer.stroke(0, 229, 255);
 
         const currentMazeSize = mazeSizeRef.current;
-        const weight =
+        const weight = Math.max(
+          1,
           currentMazeSize[0] > MAZE_CONFIG.DENSE_CELL_THRESHOLD
             ? MAZE_CONFIG.STROKE_WEIGHT_DENSE
-            : MAZE_CONFIG.STROKE_WEIGHT_DEFAULT;
-        mazeBuffer.strokeWeight(weight);
+            : MAZE_CONFIG.STROKE_WEIGHT_DEFAULT
+        );
 
         const lines = linesRef.current;
         for (let i = 0; i < lines.length; i++) {
           const l = lines[i];
-          mazeBuffer.line(l.x1, l.y1, l.x2, l.y2);
+          if (!l) continue;
+          const isHorizontal = l.y1 === l.y2;
+          const variantIndex = i % 5;
+
+          if (isHorizontal) {
+            const rawLen = Math.abs(l.x2 - l.x1);
+            if (rawLen <= 0) continue;
+            const segLength = Math.max(1, rawLen);
+            const posX = Math.min(l.x1, l.x2);
+            const posY = l.y1 - weight / 2;
+
+            const svgUri = getHedgeSvgVariant("horizontal", variantIndex);
+            const cached = cachedImages.get(svgUri);
+
+            if (cached) {
+              mazeBuffer.image(cached, posX, posY, segLength, weight);
+            } else {
+              p.loadImage(svgUri, (img: p5.Image) => {
+                cachedImages.set(svgUri, img);
+                if (currentGen === bufferGenRef.current && mazeBuffer) {
+                  mazeBuffer.image(img, posX, posY, segLength, weight);
+                }
+              });
+            }
+          } else {
+            const rawLen = Math.abs(l.y2 - l.y1);
+            if (rawLen <= 0) continue;
+            const segLength = Math.max(1, rawLen);
+            const posX = l.x1 - weight / 2;
+            const posY = Math.min(l.y1, l.y2);
+
+            const svgUri = getHedgeSvgVariant("vertical", variantIndex);
+            const cached = cachedImages.get(svgUri);
+
+            if (cached) {
+              mazeBuffer.image(cached, posX, posY, weight, segLength);
+            } else {
+              p.loadImage(svgUri, (img: p5.Image) => {
+                cachedImages.set(svgUri, img);
+                if (currentGen === bufferGenRef.current && mazeBuffer) {
+                  mazeBuffer.image(img, posX, posY, weight, segLength);
+                }
+              });
+            }
+          }
         }
       };
 
       p.setup = () => {
+        preloadStaticVariants();
         const { w, h } = getContentDimensions(el);
         const safeW = Math.max(10, w);
         const safeH = Math.max(10, h);
@@ -213,41 +312,51 @@ export function usePlayground() {
         const { startX, startY, offset } = layoutMetricsRef.current;
         if (offset <= 0) return;
 
-        if (hasStarted && playerTrail.length > 1) {
+        const currentTrail = playerTrailRef.current;
+        if (hasStartedRef.current && Array.isArray(currentTrail) && currentTrail.length > 1) {
           const trailDotRadius = Math.max(2, Math.floor(offset / 4.5));
           p.noStroke();
           p.fill(234, 179, 8);
-          for (let idx = 0; idx < playerTrail.length - 1; idx++) {
-            const [tc, tr] = playerTrail[idx];
+          for (let idx = 0; idx < currentTrail.length - 1; idx++) {
+            const pt = currentTrail[idx];
+            if (!pt) continue;
+            const [tc, tr] = pt;
             const tx = startX + tc * offset + Math.floor(offset / 2);
             const ty = startY + tr * offset + Math.floor(offset / 2);
             p.ellipse(tx, ty, trailDotRadius, trailDotRadius);
           }
         }
 
-        if (solutionPath.length > 0 && revealedSolutionCount > 0) {
+        const curSolution = solutionPathRef.current;
+        const curCount = revealedSolutionCountRef.current;
+        if (Array.isArray(curSolution) && curSolution.length > 0 && curCount > 0) {
           const dotRadius = Math.max(2, Math.floor(offset / 4));
           p.noStroke();
           p.fill(234, 179, 8);
-          const limit = Math.min(revealedSolutionCount, solutionPath.length);
+          const limit = Math.min(curCount, curSolution.length);
           for (let idx = 0; idx < limit; idx++) {
-            const [sc, sr] = solutionPath[idx];
+            const spt = curSolution[idx];
+            if (!spt) continue;
+            const [sc, sr] = spt;
             const sx = startX + sc * offset + Math.floor(offset / 2);
             const sy = startY + sr * offset + Math.floor(offset / 2);
             p.ellipse(sx, sy, dotRadius, dotRadius);
           }
         }
 
-        const [col, row] = playerGridRef.current;
-        const px = startX + col * offset + Math.floor(offset / 2);
-        const py = startY + row * offset + Math.floor(offset / 2);
-        const playerSize = Math.max(
-          MAZE_CONFIG.MIN_PLAYER_SIZE,
-          Math.floor(offset / MAZE_CONFIG.PLAYER_SIZE_DIVISOR)
-        );
-        p.noStroke();
-        p.fill(255);
-        p.ellipse(px, py, playerSize, playerSize);
+        const currentGrid = playerGridRef.current;
+        if (Array.isArray(currentGrid)) {
+          const [col, row] = currentGrid;
+          const px = startX + col * offset + Math.floor(offset / 2);
+          const py = startY + row * offset + Math.floor(offset / 2);
+          const playerSize = Math.max(
+            MAZE_CONFIG.MIN_PLAYER_SIZE,
+            Math.floor(offset / MAZE_CONFIG.PLAYER_SIZE_DIVISOR)
+          );
+          p.noStroke();
+          p.fill(255);
+          p.ellipse(px, py, playerSize, playerSize);
+        }
       };
 
       p.windowResized = () => {
@@ -278,25 +387,16 @@ export function usePlayground() {
       instance.remove();
       p5InstanceRef.current = null;
     };
-  }, [
-    mazeSeed,
-    mazeSize,
-    rebuildMazeGeometry,
-    getContentDimensions,
-    hasStarted,
-    playerTrail,
-    solutionPath,
-    revealedSolutionCount,
-  ]);
+  }, [mazeSeed, mazeSize, rebuildMazeGeometry, getContentDimensions]);
 
   const movePlayer = useCallback(
     (direction: "up" | "down" | "left" | "right") => {
-      if (!hasStarted || isVictory || isGameOver || isSolving) return;
+      if (!hasStartedRef.current || isVictory || isGameOver || isSolving) return;
 
       const currentMazeSize = mazeSizeRef.current;
       const currentMatrix = levelMatrixRef.current;
 
-      if (currentMatrix.length === 0) return;
+      if (!Array.isArray(currentMatrix) || currentMatrix.length === 0) return;
 
       let [col, row] = playerGridRef.current;
       let moved = false;
@@ -333,12 +433,12 @@ export function usePlayground() {
         }
       }
     },
-    [hasStarted, isVictory, isGameOver, isSolving, recordPlayerMove, setVictory]
+    [isVictory, isGameOver, isSolving, recordPlayerMove, setVictory]
   );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!hasStarted || isVictory || isGameOver || isSolving) return;
+      if (!hasStartedRef.current || isVictory || isGameOver || isSolving) return;
       const key = e.key.toLowerCase();
       if (key === "w" || key === "arrowup") movePlayer("up");
       else if (key === "s" || key === "arrowdown") movePlayer("down");
@@ -348,20 +448,20 @@ export function usePlayground() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [hasStarted, isVictory, isGameOver, isSolving, movePlayer]);
+  }, [isVictory, isGameOver, isSolving, movePlayer]);
 
   const handleTouchStart = useCallback(
     (e: TouchEvent) => {
-      if (!hasStarted || isVictory || isGameOver || isSolving) return;
+      if (!hasStartedRef.current || isVictory || isGameOver || isSolving) return;
       const touch = e.touches[0];
       touchStartRef.current = { x: touch.clientX, y: touch.clientY };
     },
-    [hasStarted, isVictory, isGameOver, isSolving]
+    [isVictory, isGameOver, isSolving]
   );
 
   const handleTouchEnd = useCallback(
     (e: TouchEvent) => {
-      if (!hasStarted || isVictory || isGameOver || isSolving || !touchStartRef.current) return;
+      if (!hasStartedRef.current || isVictory || isGameOver || isSolving || !touchStartRef.current) return;
       const touch = e.changedTouches[0];
       const dx = touch.clientX - touchStartRef.current.x;
       const dy = touch.clientY - touchStartRef.current.y;
@@ -375,7 +475,7 @@ export function usePlayground() {
       }
       touchStartRef.current = null;
     },
-    [hasStarted, isVictory, isGameOver, isSolving, movePlayer]
+    [isVictory, isGameOver, isSolving, movePlayer]
   );
 
   useEffect(() => {

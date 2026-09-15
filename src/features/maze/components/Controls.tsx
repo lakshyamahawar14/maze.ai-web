@@ -151,7 +151,7 @@ function Controls() {
             {canReset && (
               <button
                 type="button"
-                className="flex-1 cursor-pointer bg-[var(--color-btn-reset)] text-white text-body font-bold px-3 py-1.5 rounded flex items-center justify-center gap-1.5"
+                className="flex-1 cursor-pointer bg-[var(--color-btn-reset)] text-black text-body font-bold px-3 py-1.5 rounded flex items-center justify-center gap-1.5"
                 onClick={resetMaze}
               >
                 <RotateCcw className="w-4 h-4" />
