@@ -1,50 +1,76 @@
 import { useEffect, useState } from "react";
-import { createRoot } from "react-dom/client";
+import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import logo from "./assets/logo.ico";
 
-function FontGate() {
+const REQUIRED_FONTS = [
+  "400 16px Geist",
+  "500 16px Geist",
+  "600 16px Geist",
+  "700 16px Geist",
+  "600 16px \"Chakra Petch\"",
+  "700 16px \"Chakra Petch\"",
+];
+
+function AssetGate() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    let active = true;
+    let cancelled = false;
 
-    const fontLoads = [
-      document.fonts.load('400 16px "Geist"'),
-      document.fonts.load('500 16px "Geist"'),
-      document.fonts.load('600 16px "Geist"'),
-      document.fonts.load('700 16px "Geist"'),
-      document.fonts.load('600 16px "Chakra Petch"'),
-      document.fonts.load('700 16px "Chakra Petch"'),
-      document.fonts.ready,
-    ];
-
-    const logoPromise = new Promise<void>((resolve) => {
-      const img = new Image();
-      img.src = logo;
-      if (img.complete) {
-        resolve();
-      } else {
-        img.onload = () => resolve();
-        img.onerror = () => resolve();
-      }
-    });
-
-    Promise.all([...fontLoads, logoPromise])
-      .then(() => {
-        if (active) {
-          setReady(true);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setReady(true);
+    const waitForAssets = async () => {
+      const logoPromise = new Promise<void>((resolve) => {
+        const img = new Image();
+        img.src = logo;
+        if (img.complete) {
+          resolve();
+        } else {
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
         }
       });
 
+      await logoPromise;
+
+      const maxAttempts = 60;
+      let attempts = 0;
+
+      while (!cancelled && attempts < maxAttempts) {
+        await document.fonts.ready;
+
+        const loadPromises = REQUIRED_FONTS.map((fontSpec) =>
+          document.fonts.load(fontSpec)
+        );
+        await Promise.all(loadPromises);
+
+        const allAvailable = REQUIRED_FONTS.every((fontSpec) =>
+          document.fonts.check(fontSpec)
+        );
+
+        if (allAvailable) {
+          break;
+        }
+
+        await new Promise((res) => setTimeout(res, 50));
+        attempts++;
+      }
+
+      if (cancelled) return;
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (!cancelled) {
+            setReady(true);
+          }
+        });
+      });
+    };
+
+    waitForAssets();
+
     return () => {
-      active = false;
+      cancelled = true;
     };
   }, []);
 
@@ -61,4 +87,5 @@ if (!container) {
   throw new Error("Root element not found");
 }
 
-createRoot(container).render(<FontGate />);
+const root = ReactDOM.createRoot(container);
+root.render(<AssetGate />);
