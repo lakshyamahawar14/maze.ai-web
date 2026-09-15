@@ -4,7 +4,6 @@ import { useMazeStore } from "../store/useMazeStore";
 import { MAZE_CONFIG } from "../constants/config";
 import { findAStarPath } from "../algorithms/astar";
 import { soundManager } from "../utils/sound";
-import { KruskalMaze } from "../algorithms/kruskal";
 import logo from "../../../assets/logo.ico";
 
 function Controls() {
@@ -19,6 +18,7 @@ function Controls() {
   const isSolving = useMazeStore((state) => state.isSolving);
   const solutionPath = useMazeStore((state) => state.solutionPath);
   const revealedSolutionCount = useMazeStore((state) => state.revealedSolutionCount);
+  const levelMatrix = useMazeStore((state) => state.levelMatrix);
 
   const setTempSize = useMazeStore((state) => state.setTempSize);
   const startGame = useMazeStore((state) => state.startGame);
@@ -77,14 +77,12 @@ function Controls() {
 
   const handleSolve = useCallback(() => {
     if (hasStarted || isVictory || isGameOver || isSolving) return;
-    const kruskal = new KruskalMaze(mazeSize[0], mazeSize[1]);
-    const matrix = kruskal.transformMazeData([mazeSize[0], mazeSize[1]], kruskal.maze_data);
-    const path = findAStarPath(matrix, 0, 0, mazeSize[0] - 1, mazeSize[1] - 1);
+    const path = findAStarPath(levelMatrix, 0, 0, mazeSize[0] - 1, mazeSize[1] - 1);
     if (path.length > 0) {
       setSolutionPath(path);
       setIsSolving(true);
     }
-  }, [hasStarted, isVictory, isGameOver, isSolving, mazeSize, setSolutionPath, setIsSolving]);
+  }, [hasStarted, isVictory, isGameOver, isSolving, levelMatrix, mazeSize, setSolutionPath, setIsSolving]);
 
   const isLocked = isVictory || isGameOver || isSolving;
   const canReset = hasStarted && !isLocked;

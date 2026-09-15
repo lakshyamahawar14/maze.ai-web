@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { MAZE_CONFIG } from "../constants/config";
+import { KruskalMaze } from "../algorithms/kruskal";
 
 interface MazeState {
   mazeSize: [number, number];
@@ -16,6 +17,7 @@ interface MazeState {
   lastEarned: number;
   mazeSeed: number;
   resetKey: number;
+  levelMatrix: number[][];
   playerTrail: [number, number][];
   solutionPath: [number, number][];
   revealedSolutionCount: number;
@@ -34,9 +36,16 @@ interface MazeState {
   setIsSolving: (status: boolean) => void;
 }
 
+function generateMatrix(size: [number, number]): number[][] {
+  const kruskal = new KruskalMaze(size[0], size[1]);
+  return kruskal.transformMazeData([size[0], size[1]], kruskal.maze_data);
+}
+
+const initialSize: [number, number] = [MAZE_CONFIG.DEFAULT_SIZE, MAZE_CONFIG.DEFAULT_SIZE];
+
 export const useMazeStore = create<MazeState>()(
   subscribeWithSelector((set, get) => ({
-    mazeSize: [MAZE_CONFIG.DEFAULT_SIZE, MAZE_CONFIG.DEFAULT_SIZE],
+    mazeSize: initialSize,
     tempSize: MAZE_CONFIG.DEFAULT_SIZE,
     timeLeft: MAZE_CONFIG.INITIAL_TIME_SECONDS,
     score: 0,
@@ -49,6 +58,7 @@ export const useMazeStore = create<MazeState>()(
     lastEarned: 0,
     mazeSeed: 1,
     resetKey: 0,
+    levelMatrix: generateMatrix(initialSize),
     playerTrail: [[0, 0]],
     solutionPath: [],
     revealedSolutionCount: 0,
@@ -94,8 +104,12 @@ export const useMazeStore = create<MazeState>()(
 
     regenerateMaze: () => {
       const size = get().tempSize;
+      const newSize: [number, number] = [size, size];
+      const newMatrix = generateMatrix(newSize);
+
       set({
-        mazeSize: [size, size],
+        mazeSize: newSize,
+        levelMatrix: newMatrix,
         timeLeft: MAZE_CONFIG.INITIAL_TIME_SECONDS,
         isVictory: false,
         isGameOver: false,
@@ -130,9 +144,13 @@ export const useMazeStore = create<MazeState>()(
     nextLevel: () => {
       const currentSize = get().mazeSize[0];
       const nextSize = Math.min(MAZE_CONFIG.MAX_SIZE, currentSize + 1);
+      const newSize: [number, number] = [nextSize, nextSize];
+      const newMatrix = generateMatrix(newSize);
+
       set({
-        mazeSize: [nextSize, nextSize],
+        mazeSize: newSize,
         tempSize: nextSize,
+        levelMatrix: newMatrix,
         timeLeft: MAZE_CONFIG.INITIAL_TIME_SECONDS,
         isVictory: false,
         isGameOver: false,
@@ -150,8 +168,12 @@ export const useMazeStore = create<MazeState>()(
 
     playAgain: () => {
       const size = get().tempSize;
+      const newSize: [number, number] = [size, size];
+      const newMatrix = generateMatrix(newSize);
+
       set({
-        mazeSize: [size, size],
+        mazeSize: newSize,
+        levelMatrix: newMatrix,
         timeLeft: MAZE_CONFIG.INITIAL_TIME_SECONDS,
         score: 0,
         isVictory: false,

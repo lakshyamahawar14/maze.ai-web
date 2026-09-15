@@ -33,9 +33,10 @@ export class KruskalMaze {
     const len = this.edges.length;
     for (let i = 0; i < len; i++) {
       const [x, y] = this.edges[i];
-      const weight = Math.random() < 0.2
-        ? Math.floor(Math.random() * 4) + 5
-        : Math.floor(Math.random() * 4) + 1;
+      const weight =
+        Math.random() < 0.2
+          ? Math.floor(Math.random() * 4) + 5
+          : Math.floor(Math.random() * 4) + 1;
       edgeWeights.push([weight, x, y]);
     }
     return edgeWeights;
@@ -217,14 +218,16 @@ export class KruskalMaze {
     const p2: Point = [0, this.rowSize - 1];
     const entryExitEdges: LineSegment[] = [
       [[p1[1], p1[1] + 1], [p1[0], p1[0]]],
-      [[p2[1], p2[1]], [p2[0] + 1, p2[0]]]
+      [[p2[1], p2[1]], [p2[0] + 1, p2[0]]],
     ];
     return [[p1, p2], entryExitEdges];
   }
 
   transformMazeData(size: [number, number], mazeData: Edge[]): number[][] {
-    const row = 2 * size[0] - 1;
-    const col = 2 * size[1] - 1;
+    const numRows = size[0];
+    const numCols = size[1];
+    const row = 2 * numRows - 1;
+    const col = 2 * numCols - 1;
     const levelMatrix: number[][] = Array.from({ length: row }, () => new Array(col).fill(0));
 
     for (let i = 0; i < mazeData.length; i++) {
@@ -234,19 +237,17 @@ export class KruskalMaze {
       const x2 = p2[0];
       const y2 = p2[1];
 
-      if (x1 === x2 && x1 === 0) continue;
-      if (y1 === y2 && y1 === size[0]) continue;
-      if (x1 === x2 && x1 === size[1]) continue;
-      if (y1 === y2 && y1 === 0) continue;
+      if (x1 === x2 && (x1 === 0 || x1 === numCols)) continue;
+      if (y1 === y2 && (y1 === 0 || y1 === numRows)) continue;
 
       if (x1 === x2) {
-        const r = 2 * (size[1] - Math.max(y1, y2));
         const c = 2 * x1 - 1;
+        const r = 2 * Math.min(y1, y2);
         if (r >= 0 && r < row && c >= 0 && c < col) {
           levelMatrix[r][c] = 1;
         }
-      } else {
-        const r = 2 * (size[0] - y1) - 1;
+      } else if (y1 === y2) {
+        const r = 2 * y1 - 1;
         const c = 2 * Math.min(x1, x2);
         if (r >= 0 && r < row && c >= 0 && c < col) {
           levelMatrix[r][c] = 1;

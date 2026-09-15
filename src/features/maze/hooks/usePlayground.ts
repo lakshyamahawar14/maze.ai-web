@@ -1,6 +1,5 @@
 import p5 from "p5";
 import { useEffect, useRef, useCallback } from "react";
-import { KruskalMaze } from "../algorithms/kruskal";
 import { useMazeStore } from "../store/useMazeStore";
 import { MAZE_CONFIG } from "../constants/config";
 import { soundManager } from "../utils/sound";
@@ -14,6 +13,7 @@ export function usePlayground() {
   const mazeSize = useMazeStore((state) => state.mazeSize);
   const mazeSeed = useMazeStore((state) => state.mazeSeed);
   const resetKey = useMazeStore((state) => state.resetKey);
+  const levelMatrix = useMazeStore((state) => state.levelMatrix);
   const isVictory = useMazeStore((state) => state.isVictory);
   const isGameOver = useMazeStore((state) => state.isGameOver);
   const isSolving = useMazeStore((state) => state.isSolving);
@@ -28,7 +28,7 @@ export function usePlayground() {
 
   const playerGridRef = useRef<[number, number]>([0, 0]);
   const mazeSizeRef = useRef<[number, number]>([MAZE_CONFIG.DEFAULT_SIZE, MAZE_CONFIG.DEFAULT_SIZE]);
-  const levelMatrixRef = useRef<number[][]>([]);
+  const levelMatrixRef = useRef<number[][]>(levelMatrix);
   const linesRef = useRef<LineCoord[]>([]);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const layoutMetricsRef = useRef<{ startX: number; startY: number; offset: number }>({
@@ -85,11 +85,9 @@ export function usePlayground() {
   }, [mazeSize]);
 
   useEffect(() => {
-    const kruskal = new KruskalMaze(mazeSize[0], mazeSize[1]);
-    const matrix = kruskal.transformMazeData([mazeSize[0], mazeSize[1]], kruskal.maze_data);
-    levelMatrixRef.current = matrix;
+    levelMatrixRef.current = levelMatrix;
     playerGridRef.current = [0, 0];
-  }, [mazeSize, mazeSeed]);
+  }, [levelMatrix, mazeSeed]);
 
   useEffect(() => {
     playerGridRef.current = [0, 0];
@@ -367,7 +365,7 @@ export function usePlayground() {
       instance.remove();
       p5InstanceRef.current = null;
     };
-  }, [mazeSeed, mazeSize, rebuildMazeGeometry, getContentDimensions]);
+  }, [mazeSeed, mazeSize, levelMatrix, rebuildMazeGeometry, getContentDimensions]);
 
   const movePlayer = useCallback(
     (direction: "up" | "down" | "left" | "right") => {
