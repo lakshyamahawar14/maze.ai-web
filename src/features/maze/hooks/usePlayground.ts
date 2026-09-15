@@ -20,7 +20,7 @@ export function usePlayground() {
   const lastEarned = useMazeStore((state) => state.lastEarned);
 
   const setVictory = useMazeStore((state) => state.setVictory);
-  const regenerateMaze = useMazeStore((state) => state.regenerateMaze);
+  const nextLevel = useMazeStore((state) => state.nextLevel);
   const playAgain = useMazeStore((state) => state.playAgain);
   const incrementMoveCount = useMazeStore((state) => state.incrementMoveCount);
 
@@ -351,7 +351,7 @@ export function usePlayground() {
     timeLeft,
     score,
     lastEarned,
-    regenerateMaze,
+    nextLevel,
     playAgain,
   };
 }

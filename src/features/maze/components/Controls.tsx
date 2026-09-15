@@ -11,7 +11,6 @@ function Controls() {
   const isVictory = useMazeStore((state) => state.isVictory);
   const isGameOver = useMazeStore((state) => state.isGameOver);
   const hasStarted = useMazeStore((state) => state.hasStarted);
-  const moveCount = useMazeStore((state) => state.moveCount);
 
   const setTempSize = useMazeStore((state) => state.setTempSize);
   const startGame = useMazeStore((state) => state.startGame);
@@ -50,7 +49,7 @@ function Controls() {
   );
 
   const isLocked = isVictory || isGameOver;
-  const canReset = hasStarted && moveCount > 0 && !isLocked;
+  const canReset = hasStarted && !isLocked;
 
   const timerColorClass =
     timeLeft <= MAZE_CONFIG.WARNING_TIME_THRESHOLD
@@ -62,14 +61,14 @@ function Controls() {
       <div className="flex flex-col items-center w-full gap-3">
         <div className="flex items-center justify-between w-full max-w-xs gap-3">
           <label htmlFor="mazeSize" className="text-body font-medium text-[var(--color-content)]">
-            Size ({MAZE_CONFIG.MIN_SIZE}-{MAZE_CONFIG.MAX_SIZE}):
+            Maze Size
           </label>
           <input
             type="number"
             min={MAZE_CONFIG.MIN_SIZE}
             max={MAZE_CONFIG.MAX_SIZE}
             disabled={isLocked || hasStarted}
-            className="w-16 px-2 py-0.5 outline-none bg-[var(--color-surface)] border-b-2 border-[var(--color-accent)] text-center text-body text-[var(--color-content)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-16 px-2 py-0.5 outline-none bg-[var(--color-surface)] border-b-2 border-[var(--color-accent)] text-center text-body font-game font-bold text-[var(--color-content)] disabled:opacity-50 disabled:cursor-not-allowed"
             id="mazeSize"
             name="mazeSize"
             value={tempSize}
@@ -93,7 +92,7 @@ function Controls() {
           <button
             type="button"
             disabled={hasStarted || isLocked}
-            className="w-full cursor-pointer bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-black text-body font-semibold px-4 py-2 rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full cursor-pointer bg-[var(--color-btn-play)] hover:bg-[var(--color-btn-play-hover)] text-black text-body font-bold px-4 py-2 rounded flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={startGame}
           >
             <Play className="w-4 h-4 fill-current" />
@@ -104,7 +103,7 @@ function Controls() {
             <button
               type="button"
               disabled={isLocked}
-              className="flex-1 cursor-pointer bg-[var(--color-surface)] hover:bg-[var(--color-border)] border border-[var(--color-border)] text-[var(--color-content)] text-body font-semibold px-3 py-1.5 rounded transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 cursor-pointer bg-[var(--color-btn-new)] hover:bg-[var(--color-btn-new-hover)] text-black text-body font-bold px-3 py-1.5 rounded flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={regenerateMaze}
             >
               <RefreshCw className="w-4 h-4" />
@@ -113,7 +112,7 @@ function Controls() {
             {canReset && (
               <button
                 type="button"
-                className="flex-1 cursor-pointer bg-[var(--color-surface)] hover:bg-[var(--color-border)] border border-[var(--color-border)] text-[var(--color-content)] text-body font-semibold px-3 py-1.5 rounded transition-colors flex items-center justify-center gap-1.5"
+                className="flex-1 cursor-pointer bg-[var(--color-btn-reset)] hover:bg-[var(--color-btn-reset-hover)] text-white text-body font-bold px-3 py-1.5 rounded flex items-center justify-center gap-1.5"
                 onClick={resetMaze}
               >
                 <RotateCcw className="w-4 h-4" />
@@ -127,21 +126,24 @@ function Controls() {
       <div className="flex items-center gap-2 lg:flex-col lg:w-full lg:max-w-xs lg:gap-3">
         <div
           id="time"
-          className={`px-3 py-1.5 text-center rounded text-caption font-semibold border transition-colors lg:w-full ${timerColorClass}`}
+          className={`px-3 py-2 text-center rounded border transition-colors lg:w-full flex items-center justify-between ${timerColorClass}`}
         >
-          Time: {timeLeft}s
+          <span className="text-caption font-medium tracking-wide">Time</span>
+          <span className="font-game font-bold text-stat">{timeLeft}s</span>
         </div>
         <div
           id="score"
-          className="px-3 py-1.5 text-center rounded text-caption font-semibold bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-content)] lg:w-full"
+          className="px-3 py-2 text-center rounded bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-content)] lg:w-full flex items-center justify-between"
         >
-          Score: {score}
+          <span className="text-caption font-medium tracking-wide text-[var(--color-content-muted)]">Score</span>
+          <span className="font-game font-bold text-stat">{score}</span>
         </div>
         <div
           id="highscore"
-          className="px-3 py-1.5 text-center rounded text-caption font-semibold bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-content)] lg:w-full"
+          className="px-3 py-2 text-center rounded bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-content)] lg:w-full flex items-center justify-between"
         >
-          Highscore: {highscore}
+          <span className="text-caption font-medium tracking-wide text-[var(--color-content-muted)]">Highscore</span>
+          <span className="font-game font-bold text-stat">{highscore}</span>
         </div>
       </div>
     </div>

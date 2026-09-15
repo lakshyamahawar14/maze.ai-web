@@ -20,6 +20,7 @@ interface MazeState {
   incrementMoveCount: () => void;
   regenerateMaze: () => void;
   resetMaze: () => void;
+  nextLevel: () => void;
   playAgain: () => void;
   decrementTime: () => void;
   setVictory: () => void;
@@ -44,7 +45,17 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       tempSize: Math.min(MAZE_CONFIG.MAX_SIZE, Math.max(MAZE_CONFIG.MIN_SIZE, size)),
     }),
 
-  startGame: () => set({ hasStarted: true }),
+  startGame: () => {
+    const size = get().tempSize;
+    set({
+      mazeSize: [size, size],
+      hasStarted: true,
+      timeLeft: MAZE_CONFIG.INITIAL_TIME_SECONDS,
+      isVictory: false,
+      isGameOver: false,
+      moveCount: 0,
+    });
+  },
 
   incrementMoveCount: () =>
     set((state: MazeState) => ({ moveCount: state.moveCount + 1 })),
@@ -69,11 +80,27 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       timeLeft: MAZE_CONFIG.INITIAL_TIME_SECONDS,
       isVictory: false,
       isGameOver: false,
-      hasStarted: false,
       moveCount: 0,
       lastEarned: 0,
       resetKey: state.resetKey + 1,
     }));
+  },
+
+  nextLevel: () => {
+    const currentSize = get().mazeSize[0];
+    const nextSize = Math.min(MAZE_CONFIG.MAX_SIZE, currentSize + 1);
+    set({
+      mazeSize: [nextSize, nextSize],
+      tempSize: nextSize,
+      timeLeft: MAZE_CONFIG.INITIAL_TIME_SECONDS,
+      isVictory: false,
+      isGameOver: false,
+      hasStarted: true,
+      moveCount: 0,
+      lastEarned: 0,
+      mazeSeed: Date.now() + Math.random(),
+      resetKey: 0,
+    });
   },
 
   playAgain: () => {

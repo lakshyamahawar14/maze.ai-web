@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Geist:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @source "./**/*.{ts,tsx}";
@@ -5,7 +6,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Geist", system-ui, -apple-system, sans-serif;
+  --font-game: "Chakra Petch", monospace;
 
   --color-canvas: #000000;
   --color-surface: #0a0a0a;
@@ -18,8 +20,19 @@
   --color-accent: #00e5ff;
   --color-accent-hover: #00cce6;
 
+  --color-btn-play: #10b981;
+  --color-btn-play-hover: #059669;
+
+  --color-btn-reset: #ef4444;
+  --color-btn-reset-hover: #dc2626;
+
+  --color-btn-new: #00e5ff;
+  --color-btn-new-hover: #00cce6;
+
   --text-title: 1.5rem;
   --text-title--line-height: 2rem;
+  --text-stat: 1.125rem;
+  --text-stat--line-height: 1.5rem;
   --text-body: 0.875rem;
   --text-body--line-height: 1.25rem;
   --text-caption: 0.75rem;
