@@ -7,12 +7,26 @@ function pseudoRandom(seed: number): () => number {
   };
 }
 
-function buildStaticSvg(isHoriz: boolean, variant: number): string {
+export interface PrebakedStamp {
+  canvas: HTMLCanvasElement;
+  width: number;
+  height: number;
+}
+
+function createHedgeStamp(isHoriz: boolean, variant: number): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
   const rand = pseudoRandom((variant + 1) * 7919);
   const steps = 16;
-  const length = 100;
-  const thickness = 2;
-  const stepSize = length / steps;
+  const baseLen = 100;
+  const baseThick = 2;
+
+  canvas.width = isHoriz ? baseLen : baseThick;
+  canvas.height = isHoriz ? baseThick : baseLen;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return canvas;
+
+  const stepSize = baseLen / steps;
   const maxJitter = 0.45;
 
   const topPoints: [number, number][] = [];
@@ -26,66 +40,71 @@ function buildStaticSvg(isHoriz: boolean, variant: number): string {
 
     if (isHoriz) {
       topPoints.push([pos, Math.max(0, noiseTop)]);
-      bottomPoints.push([pos, thickness + Math.min(0, noiseBottom)]);
+      bottomPoints.push([pos, baseThick + Math.min(0, noiseBottom)]);
     } else {
       topPoints.push([Math.max(0, noiseTop), pos]);
-      bottomPoints.push([thickness + Math.min(0, noiseBottom), pos]);
+      bottomPoints.push([baseThick + Math.min(0, noiseBottom), pos]);
     }
   }
 
-  let basePolygonD = `M ${topPoints[0][0].toFixed(2)} ${topPoints[0][1].toFixed(2)} `;
+  const hedgePath = new Path2D();
+  const snowPath = new Path2D();
+
+  hedgePath.moveTo(topPoints[0][0], topPoints[0][1]);
+  snowPath.moveTo(topPoints[0][0], topPoints[0][1]);
+
   for (let i = 1; i < topPoints.length; i++) {
-    basePolygonD += `L ${topPoints[i][0].toFixed(2)} ${topPoints[i][1].toFixed(2)} `;
+    hedgePath.lineTo(topPoints[i][0], topPoints[i][1]);
+    snowPath.lineTo(topPoints[i][0], topPoints[i][1]);
   }
   for (let i = bottomPoints.length - 1; i >= 0; i--) {
-    basePolygonD += `L ${bottomPoints[i][0].toFixed(2)} ${bottomPoints[i][1].toFixed(2)} `;
+    hedgePath.lineTo(bottomPoints[i][0], bottomPoints[i][1]);
   }
-  basePolygonD += "Z";
+  hedgePath.closePath();
 
-  let snowPathD = `M ${topPoints[0][0].toFixed(2)} ${topPoints[0][1].toFixed(2)} `;
-  for (let i = 1; i < topPoints.length; i++) {
-    snowPathD += `L ${topPoints[i][0].toFixed(2)} ${topPoints[i][1].toFixed(2)} `;
-  }
+  const grad = ctx.createLinearGradient(
+    0,
+    0,
+    isHoriz ? 0 : baseThick,
+    isHoriz ? baseThick : 0
+  );
+  grad.addColorStop(0, "#1b4d2e");
+  grad.addColorStop(0.5, "#143922");
+  grad.addColorStop(1, "#0a1d12");
 
-  const viewBox = isHoriz ? "0 0 100 2" : "0 0 2 100";
-  const svgString = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="hedgeG_${variant}_${isHoriz ? "h" : "v"}" x1="0%" y1="0%" x2="${isHoriz ? "0%" : "100%"}" y2="${isHoriz ? "100%" : "0%"}">
-          <stop offset="0%" stop-color="#1b4d2e"/>
-          <stop offset="50%" stop-color="#143922"/>
-          <stop offset="100%" stop-color="#0a1d12"/>
-        </linearGradient>
-      </defs>
-      <path d="${basePolygonD}" fill="url(#hedgeG_${variant}_${isHoriz ? "h" : "v"})" />
-      <path d="${snowPathD}" stroke="#dbeafe" stroke-width="0.35" stroke-linecap="round" opacity="0.75" fill="none" />
-    </svg>
-  `.trim();
+  ctx.fillStyle = grad;
+  ctx.fill(hedgePath);
 
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svgString)}`;
+  ctx.strokeStyle = "#dbeafe";
+  ctx.lineWidth = 0.35;
+  ctx.lineCap = "round";
+  ctx.globalAlpha = 0.75;
+  ctx.stroke(snowPath);
+
+  return canvas;
 }
 
-const HEDGE_SVG_CACHE = {
+const PREBAKED_STAMPS = {
   horizontal: [
-    buildStaticSvg(true, 0),
-    buildStaticSvg(true, 1),
-    buildStaticSvg(true, 2),
-    buildStaticSvg(true, 3),
-    buildStaticSvg(true, 4),
-  ] as const,
+    createHedgeStamp(true, 0),
+    createHedgeStamp(true, 1),
+    createHedgeStamp(true, 2),
+    createHedgeStamp(true, 3),
+    createHedgeStamp(true, 4),
+  ],
   vertical: [
-    buildStaticSvg(false, 0),
-    buildStaticSvg(false, 1),
-    buildStaticSvg(false, 2),
-    buildStaticSvg(false, 3),
-    buildStaticSvg(false, 4),
-  ] as const,
-} as const;
+    createHedgeStamp(false, 0),
+    createHedgeStamp(false, 1),
+    createHedgeStamp(false, 2),
+    createHedgeStamp(false, 3),
+    createHedgeStamp(false, 4),
+  ],
+};
 
-export function getHedgeSvgVariant(
+export function getHedgeStamp(
   orientation: "horizontal" | "vertical",
   variantIndex: number
-): string {
+): HTMLCanvasElement {
   const idx = Math.abs(variantIndex) % 5;
-  return HEDGE_SVG_CACHE[orientation][idx];
+  return PREBAKED_STAMPS[orientation][idx];
 }

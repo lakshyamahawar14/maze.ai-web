@@ -4,7 +4,7 @@ import { KruskalMaze } from "../algorithms/kruskal";
 import { useMazeStore } from "../store/useMazeStore";
 import { MAZE_CONFIG } from "../constants/config";
 import { soundManager } from "../utils/sound";
-import { getHedgeSvgVariant } from "../utils/hedgeSvgGenerator";
+import { getHedgeStamp } from "../utils/hedgeSvgGenerator";
 import type { LineCoord } from "../types";
 
 export function usePlayground() {
@@ -41,7 +41,6 @@ export function usePlayground() {
   const playerTrailRef = useRef<[number, number][]>([[0, 0]]);
   const solutionPathRef = useRef<[number, number][]>([]);
   const revealedSolutionCountRef = useRef<number>(0);
-  const bufferGenRef = useRef<number>(0);
 
   useEffect(() => {
     const unsubStarted = useMazeStore.subscribe(
@@ -204,24 +203,11 @@ export function usePlayground() {
 
     const sketch = (p: p5) => {
       let mazeBuffer: p5.Graphics;
-      const cachedImages = new Map<string, p5.Image>();
-
-      const preloadStaticVariants = () => {
-        for (let i = 0; i < 5; i++) {
-          const hUri = getHedgeSvgVariant("horizontal", i);
-          const vUri = getHedgeSvgVariant("vertical", i);
-          p.loadImage(hUri, (img) => cachedImages.set(hUri, img));
-          p.loadImage(vUri, (img) => cachedImages.set(vUri, img));
-        }
-      };
 
       const refreshBuffer = () => {
         const w = p.width;
         const h = p.height;
         if (w <= 0 || h <= 0) return;
-
-        bufferGenRef.current += 1;
-        const currentGen = bufferGenRef.current;
 
         rebuildMazeGeometry(w, h);
 
@@ -240,7 +226,10 @@ export function usePlayground() {
             : MAZE_CONFIG.STROKE_WEIGHT_DEFAULT
         );
 
+        const ctx = mazeBuffer.drawingContext as CanvasRenderingContext2D;
         const lines = linesRef.current;
+        if (!ctx || lines.length === 0) return;
+
         for (let i = 0; i < lines.length; i++) {
           const l = lines[i];
           if (!l) continue;
@@ -248,51 +237,26 @@ export function usePlayground() {
           const variantIndex = i % 5;
 
           if (isHorizontal) {
-            const rawLen = Math.abs(l.x2 - l.x1);
-            if (rawLen <= 0) continue;
-            const segLength = Math.max(1, rawLen);
+            const segLength = Math.abs(l.x2 - l.x1);
+            if (segLength <= 0) continue;
             const posX = Math.min(l.x1, l.x2);
             const posY = l.y1 - weight / 2;
 
-            const svgUri = getHedgeSvgVariant("horizontal", variantIndex);
-            const cached = cachedImages.get(svgUri);
-
-            if (cached) {
-              mazeBuffer.image(cached, posX, posY, segLength, weight);
-            } else {
-              p.loadImage(svgUri, (img: p5.Image) => {
-                cachedImages.set(svgUri, img);
-                if (currentGen === bufferGenRef.current && mazeBuffer) {
-                  mazeBuffer.image(img, posX, posY, segLength, weight);
-                }
-              });
-            }
+            const stamp = getHedgeStamp("horizontal", variantIndex);
+            ctx.drawImage(stamp, posX, posY, segLength, weight);
           } else {
-            const rawLen = Math.abs(l.y2 - l.y1);
-            if (rawLen <= 0) continue;
-            const segLength = Math.max(1, rawLen);
+            const segLength = Math.abs(l.y2 - l.y1);
+            if (segLength <= 0) continue;
             const posX = l.x1 - weight / 2;
             const posY = Math.min(l.y1, l.y2);
 
-            const svgUri = getHedgeSvgVariant("vertical", variantIndex);
-            const cached = cachedImages.get(svgUri);
-
-            if (cached) {
-              mazeBuffer.image(cached, posX, posY, weight, segLength);
-            } else {
-              p.loadImage(svgUri, (img: p5.Image) => {
-                cachedImages.set(svgUri, img);
-                if (currentGen === bufferGenRef.current && mazeBuffer) {
-                  mazeBuffer.image(img, posX, posY, weight, segLength);
-                }
-              });
-            }
+            const stamp = getHedgeStamp("vertical", variantIndex);
+            ctx.drawImage(stamp, posX, posY, weight, segLength);
           }
         }
       };
 
       p.setup = () => {
-        preloadStaticVariants();
         const { w, h } = getContentDimensions(el);
         const safeW = Math.max(10, w);
         const safeH = Math.max(10, h);
