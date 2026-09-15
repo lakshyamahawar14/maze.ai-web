@@ -1,41 +1,37 @@
 import { useEffect, useCallback, ChangeEvent } from "react";
-import { RefreshCw, RotateCcw } from "lucide-react";
+import { RefreshCw, RotateCcw, Play } from "lucide-react";
 import { useMazeStore } from "../store/useMazeStore";
+import { MAZE_CONFIG } from "../constants/config";
 
 function Controls() {
-  const mazeSize = useMazeStore((state) => state.mazeSize);
   const tempSize = useMazeStore((state) => state.tempSize);
   const timeLeft = useMazeStore((state) => state.timeLeft);
   const score = useMazeStore((state) => state.score);
   const highscore = useMazeStore((state) => state.highscore);
   const isVictory = useMazeStore((state) => state.isVictory);
   const isGameOver = useMazeStore((state) => state.isGameOver);
+  const hasStarted = useMazeStore((state) => state.hasStarted);
+  const moveCount = useMazeStore((state) => state.moveCount);
 
   const setTempSize = useMazeStore((state) => state.setTempSize);
+  const startGame = useMazeStore((state) => state.startGame);
   const regenerateMaze = useMazeStore((state) => state.regenerateMaze);
   const resetMaze = useMazeStore((state) => state.resetMaze);
   const decrementTime = useMazeStore((state) => state.decrementTime);
-  const addScore = useMazeStore((state) => state.addScore);
 
   useEffect(() => {
-    if (isVictory || isGameOver) return;
+    if (!hasStarted || isVictory || isGameOver) return;
     const interval = setInterval(() => {
       decrementTime();
     }, 1000);
     return () => clearInterval(interval);
-  }, [isVictory, isGameOver, decrementTime]);
-
-  useEffect(() => {
-    if (isVictory) {
-      addScore(mazeSize[0]);
-    }
-  }, [isVictory, mazeSize, addScore]);
+  }, [hasStarted, isVictory, isGameOver, decrementTime]);
 
   const handleInputChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value.trim();
       if (value === "") {
-        setTempSize(2);
+        setTempSize(MAZE_CONFIG.MIN_SIZE);
         return;
       }
       const parsed = Number(value);
@@ -54,9 +50,10 @@ function Controls() {
   );
 
   const isLocked = isVictory || isGameOver;
+  const canReset = hasStarted && moveCount > 0 && !isLocked;
 
   const timerColorClass =
-    timeLeft <= 10
+    timeLeft <= MAZE_CONFIG.WARNING_TIME_THRESHOLD
       ? "text-rose-500 border-rose-500 animate-pulse bg-rose-950/20"
       : "text-emerald-400 border-emerald-500/40 bg-[var(--color-surface)]";
 
@@ -65,13 +62,13 @@ function Controls() {
       <div className="flex flex-col items-center w-full gap-3">
         <div className="flex items-center justify-between w-full max-w-xs gap-3">
           <label htmlFor="mazeSize" className="text-body font-medium text-[var(--color-content)]">
-            Size (2-50):
+            Size ({MAZE_CONFIG.MIN_SIZE}-{MAZE_CONFIG.MAX_SIZE}):
           </label>
           <input
             type="number"
-            min={2}
-            max={50}
-            disabled={isLocked}
+            min={MAZE_CONFIG.MIN_SIZE}
+            max={MAZE_CONFIG.MAX_SIZE}
+            disabled={isLocked || hasStarted}
             className="w-16 px-2 py-0.5 outline-none bg-[var(--color-surface)] border-b-2 border-[var(--color-accent)] text-center text-body text-[var(--color-content)] disabled:opacity-50 disabled:cursor-not-allowed"
             id="mazeSize"
             name="mazeSize"
@@ -83,35 +80,47 @@ function Controls() {
         <div className="w-full max-w-xs flex items-center gap-2">
           <input
             type="range"
-            min={2}
-            max={50}
-            disabled={isLocked}
+            min={MAZE_CONFIG.MIN_SIZE}
+            max={MAZE_CONFIG.MAX_SIZE}
+            disabled={isLocked || hasStarted}
             value={tempSize}
             onChange={handleSliderChange}
             className="w-full accent-[var(--color-accent)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full max-w-xs">
+        <div className="flex flex-col items-center gap-2 w-full max-w-xs">
           <button
             type="button"
-            disabled={isLocked}
-            className="flex-1 cursor-pointer bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-black text-body font-semibold px-4 py-1.5 rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={regenerateMaze}
+            disabled={hasStarted || isLocked}
+            className="w-full cursor-pointer bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-black text-body font-semibold px-4 py-2 rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={startGame}
           >
-            <RefreshCw className="w-4 h-4" />
-            Regenerate
+            <Play className="w-4 h-4 fill-current" />
+            {hasStarted ? "Playing..." : "Start Game"}
           </button>
-          <button
-            type="button"
-            disabled={isLocked}
-            className="cursor-pointer bg-[var(--color-surface)] hover:bg-[var(--color-border)] border border-[var(--color-border)] text-[var(--color-content)] text-body font-semibold px-3 py-1.5 rounded transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={resetMaze}
-            title="Reset Position"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Reset
-          </button>
+
+          <div className="flex items-center gap-2 w-full">
+            <button
+              type="button"
+              disabled={isLocked}
+              className="flex-1 cursor-pointer bg-[var(--color-surface)] hover:bg-[var(--color-border)] border border-[var(--color-border)] text-[var(--color-content)] text-body font-semibold px-3 py-1.5 rounded transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={regenerateMaze}
+            >
+              <RefreshCw className="w-4 h-4" />
+              New
+            </button>
+            {canReset && (
+              <button
+                type="button"
+                className="flex-1 cursor-pointer bg-[var(--color-surface)] hover:bg-[var(--color-border)] border border-[var(--color-border)] text-[var(--color-content)] text-body font-semibold px-3 py-1.5 rounded transition-colors flex items-center justify-center gap-1.5"
+                onClick={resetMaze}
+              >
+                <RotateCcw className="w-4 h-4" />
+                Reset
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
