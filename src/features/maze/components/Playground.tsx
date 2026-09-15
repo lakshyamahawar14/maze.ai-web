@@ -1,20 +1,30 @@
 import p5 from "p5";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
+import { ArrowRight, Trophy, AlertTriangle, RotateCcw } from "lucide-react";
 import { KruskalMaze } from "../algorithms/kruskal";
-import type { LineCoord, PlaygroundProps } from "../types";
+import { useMazeStore } from "../store/useMazeStore";
+import type { LineCoord } from "../types";
 
-function Playground({ inputData, onVictory }: PlaygroundProps) {
+function Playground() {
   const containerRef = useRef<HTMLDivElement>(null);
   const p5InstanceRef = useRef<p5 | null>(null);
 
-  const [mazeSize, setMazeSize] = useState<[number, number]>([15, 15]);
-  const [levelMatrix, setLevelMatrix] = useState<number[][]>([]);
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const mazeSize = useMazeStore((state) => state.mazeSize);
+  const mazeSeed = useMazeStore((state) => state.mazeSeed);
+  const resetKey = useMazeStore((state) => state.resetKey);
+  const isVictory = useMazeStore((state) => state.isVictory);
+  const isGameOver = useMazeStore((state) => state.isGameOver);
+  const timeLeft = useMazeStore((state) => state.timeLeft);
+  const score = useMazeStore((state) => state.score);
+  const setVictory = useMazeStore((state) => state.setVictory);
+  const regenerateMaze = useMazeStore((state) => state.regenerateMaze);
+  const playAgain = useMazeStore((state) => state.playAgain);
 
   const playerPosRef = useRef<[number, number]>([0, 0]);
   const mazeSizeRef = useRef<[number, number]>([15, 15]);
   const levelMatrixRef = useRef<number[][]>([]);
   const linesRef = useRef<LineCoord[]>([]);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const layoutMetricsRef = useRef<{ startX: number; startY: number; offset: number }>({
     startX: 0,
     startY: 0,
@@ -26,21 +36,11 @@ function Playground({ inputData, onVictory }: PlaygroundProps) {
   }, [mazeSize]);
 
   useEffect(() => {
-    levelMatrixRef.current = levelMatrix;
-  }, [levelMatrix]);
-
-  useEffect(() => {
-    if (inputData.length === 2) {
-      setMazeSize(inputData[0]);
-      onVictory(false);
-    }
-  }, [inputData, onVictory]);
-
-  useEffect(() => {
     const kruskal = new KruskalMaze(mazeSize[0], mazeSize[1]);
     const matrix = kruskal.transformMazeData([mazeSize[0], mazeSize[1]], kruskal.maze_data);
-    setLevelMatrix(matrix);
-  }, [mazeSize, inputData]);
+    levelMatrixRef.current = matrix;
+    setVictory(false);
+  }, [mazeSize, mazeSeed, setVictory]);
 
   const rebuildMazeGeometry = useCallback((width: number, height: number) => {
     const matrix = levelMatrixRef.current;
@@ -63,8 +63,8 @@ function Playground({ inputData, onVictory }: PlaygroundProps) {
     const totalWidth = colSize * offset;
     const totalHeight = rowSize * offset;
 
-    const startX = Math.floor((width - totalWidth) / 2);
-    const startY = Math.floor((height - totalHeight) / 2);
+    const startX = Math.round((width - totalWidth) / 2);
+    const startY = Math.round((height - totalHeight) / 2);
 
     layoutMetricsRef.current = { startX, startY, offset };
 
@@ -129,6 +129,16 @@ function Playground({ inputData, onVictory }: PlaygroundProps) {
     playerPosRef.current = [playerStartX, playerStartY];
   }, []);
 
+  useEffect(() => {
+    const { startX, startY, offset } = layoutMetricsRef.current;
+    if (offset > 0) {
+      playerPosRef.current = [
+        startX + Math.floor(offset / 2),
+        startY + Math.floor(offset / 2),
+      ];
+    }
+  }, [resetKey]);
+
   const getContentDimensions = useCallback((el: HTMLElement) => {
     const style = window.getComputedStyle(el);
     const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
@@ -142,7 +152,7 @@ function Playground({ inputData, onVictory }: PlaygroundProps) {
 
   useEffect(() => {
     const el = containerRef.current;
-    if (!el || levelMatrix.length === 0) return;
+    if (!el || levelMatrixRef.current.length === 0) return;
 
     if (p5InstanceRef.current) {
       p5InstanceRef.current.remove();
@@ -226,47 +236,52 @@ function Playground({ inputData, onVictory }: PlaygroundProps) {
       instance.remove();
       p5InstanceRef.current = null;
     };
-  }, [levelMatrix, rebuildMazeGeometry, getContentDimensions]);
+  }, [mazeSeed, mazeSize, rebuildMazeGeometry, getContentDimensions]);
 
-  const movePlayer = useCallback((direction: "up" | "down" | "left" | "right") => {
-    const currentMazeSize = mazeSizeRef.current;
-    const currentMatrix = levelMatrixRef.current;
-    const { startX, startY, offset } = layoutMetricsRef.current;
+  const movePlayer = useCallback(
+    (direction: "up" | "down" | "left" | "right") => {
+      if (isVictory || isGameOver) return;
 
-    if (offset <= 0) return;
+      const currentMazeSize = mazeSizeRef.current;
+      const currentMatrix = levelMatrixRef.current;
+      const { startX, startY, offset } = layoutMetricsRef.current;
 
-    let [px, py] = playerPosRef.current;
-    let j = Math.floor((px - startX) / offset);
-    let i = Math.floor((py - startY) / offset);
+      if (offset <= 0 || currentMatrix.length === 0) return;
 
-    if (direction === "up") {
-      if (i - 1 < 0 || currentMatrix[2 * i - 1]?.[2 * j] === 1) return;
-      py -= offset;
-      i -= 1;
-    } else if (direction === "down") {
-      if (i + 1 >= currentMazeSize[0] || currentMatrix[2 * i + 1]?.[2 * j] === 1) return;
-      py += offset;
-      i += 1;
-    } else if (direction === "left") {
-      if (j - 1 < 0 || currentMatrix[2 * i]?.[2 * j - 1] === 1) return;
-      px -= offset;
-      j -= 1;
-    } else if (direction === "right") {
-      if (j + 1 >= currentMazeSize[1] || currentMatrix[2 * i]?.[2 * j + 1] === 1) return;
-      px += offset;
-      j += 1;
-    }
+      let [px, py] = playerPosRef.current;
+      let j = Math.floor((px - startX) / offset);
+      let i = Math.floor((py - startY) / offset);
 
-    playerPosRef.current = [px, py];
+      if (direction === "up") {
+        if (i - 1 < 0 || currentMatrix[2 * i - 1]?.[2 * j] === 1) return;
+        py -= offset;
+        i -= 1;
+      } else if (direction === "down") {
+        if (i + 1 >= currentMazeSize[0] || currentMatrix[2 * i + 1]?.[2 * j] === 1) return;
+        py += offset;
+        i += 1;
+      } else if (direction === "left") {
+        if (j - 1 < 0 || currentMatrix[2 * i]?.[2 * j - 1] === 1) return;
+        px -= offset;
+        j -= 1;
+      } else if (direction === "right") {
+        if (j + 1 >= currentMazeSize[1] || currentMatrix[2 * i]?.[2 * j + 1] === 1) return;
+        px += offset;
+        j += 1;
+      }
 
-    if (i === currentMazeSize[0] - 1 && j === currentMazeSize[1] - 1) {
-      onVictory(true);
-      alert("Victory!");
-    }
-  }, [onVictory]);
+      playerPosRef.current = [px, py];
+
+      if (i === currentMazeSize[0] - 1 && j === currentMazeSize[1] - 1) {
+        setVictory(true);
+      }
+    },
+    [isVictory, isGameOver, setVictory]
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isVictory || isGameOver) return;
       const key = e.key.toLowerCase();
       if (key === "w" || key === "arrowup") movePlayer("up");
       else if (key === "s" || key === "arrowdown") movePlayer("down");
@@ -276,28 +291,35 @@ function Playground({ inputData, onVictory }: PlaygroundProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [movePlayer]);
+  }, [isVictory, isGameOver, movePlayer]);
 
-  const handleTouchStart = useCallback((e: TouchEvent) => {
-    const touch = e.touches[0];
-    setTouchStart({ x: touch.clientX, y: touch.clientY });
-  }, []);
+  const handleTouchStart = useCallback(
+    (e: TouchEvent) => {
+      if (isVictory || isGameOver) return;
+      const touch = e.touches[0];
+      touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    },
+    [isVictory, isGameOver]
+  );
 
-  const handleTouchEnd = useCallback((e: TouchEvent) => {
-    if (!touchStart) return;
-    const touch = e.changedTouches[0];
-    const dx = touch.clientX - touchStart.x;
-    const dy = touch.clientY - touchStart.y;
+  const handleTouchEnd = useCallback(
+    (e: TouchEvent) => {
+      if (isVictory || isGameOver || !touchStartRef.current) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStartRef.current.x;
+      const dy = touch.clientY - touchStartRef.current.y;
 
-    if (Math.abs(dx) > Math.abs(dy)) {
-      if (dx > 20) movePlayer("right");
-      else if (dx < -20) movePlayer("left");
-    } else {
-      if (dy > 20) movePlayer("down");
-      else if (dy < -20) movePlayer("up");
-    }
-    setTouchStart(null);
-  }, [touchStart, movePlayer]);
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 20) movePlayer("right");
+        else if (dx < -20) movePlayer("left");
+      } else {
+        if (dy > 20) movePlayer("down");
+        else if (dy < -20) movePlayer("up");
+      }
+      touchStartRef.current = null;
+    },
+    [isVictory, isGameOver, movePlayer]
+  );
 
   useEffect(() => {
     const el = containerRef.current;
@@ -320,7 +342,59 @@ function Playground({ inputData, onVictory }: PlaygroundProps) {
     <div
       ref={containerRef}
       className="flex-1 w-full h-full p-[8px] lg:p-[16px] relative overflow-hidden min-h-0 bg-[var(--color-canvas)]"
-    />
+    >
+      {isVictory && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--color-canvas)]/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 p-6 rounded border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl max-w-xs w-full mx-4 text-center">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-[var(--color-accent)]/10 text-[var(--color-accent)] border border-[var(--color-accent)]/30">
+              <Trophy className="w-6 h-6" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <h2 className="text-title font-bold text-[var(--color-content)] tracking-wider">
+                MAZE SOLVED!
+              </h2>
+              <p className="text-caption text-[var(--color-content-muted)]">
+                Time remaining: <span className="text-[var(--color-content)] font-semibold">{timeLeft}s</span> (+{mazeSize[0]} pts)
+              </p>
+            </div>
+            <button
+              type="button"
+              className="w-full cursor-pointer bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-black text-body font-semibold py-2 px-4 rounded transition-colors flex items-center justify-center gap-2"
+              onClick={regenerateMaze}
+            >
+              Next Maze
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isGameOver && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--color-canvas)]/85 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 p-6 rounded border border-rose-900/60 bg-[var(--color-surface)] shadow-2xl max-w-xs w-full mx-4 text-center">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-rose-500/10 text-rose-500 border border-rose-500/30">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <h2 className="text-title font-bold text-rose-500 tracking-wider">
+                GAME OVER!
+              </h2>
+              <p className="text-caption text-[var(--color-content-muted)]">
+                Time ran out. Final Score: <span className="text-[var(--color-content)] font-semibold">{score}</span>
+              </p>
+            </div>
+            <button
+              type="button"
+              className="w-full cursor-pointer bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-black text-body font-semibold py-2 px-4 rounded transition-colors flex items-center justify-center gap-2"
+              onClick={playAgain}
+            >
+              Play Again
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

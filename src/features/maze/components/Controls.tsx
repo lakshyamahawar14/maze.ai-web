@@ -1,74 +1,64 @@
-import { useState, useEffect, useCallback, ChangeEvent } from "react";
-import type { ControlsProps } from "../types";
+import { useEffect, useCallback, ChangeEvent } from "react";
+import { RefreshCw, RotateCcw } from "lucide-react";
+import { useMazeStore } from "../store/useMazeStore";
 
-function Controls({ onInputChange, isVictory }: ControlsProps) {
-  const [mazeSize, setMazeSize] = useState<[number, number]>([15, 15]);
-  const [tempMazeSize, setTempMazeSize] = useState<number>(15);
-  const [time, setTime] = useState<number>(0);
-  const [score, setScore] = useState<number>(0);
-  const [highscore, setHighscore] = useState<number>(() => {
-    const stored = localStorage.getItem("highscore");
-    return stored !== null ? Number(stored) : 0;
-  });
+function Controls() {
+  const mazeSize = useMazeStore((state) => state.mazeSize);
+  const tempSize = useMazeStore((state) => state.tempSize);
+  const timeLeft = useMazeStore((state) => state.timeLeft);
+  const score = useMazeStore((state) => state.score);
+  const highscore = useMazeStore((state) => state.highscore);
+  const isVictory = useMazeStore((state) => state.isVictory);
+  const isGameOver = useMazeStore((state) => state.isGameOver);
+
+  const setTempSize = useMazeStore((state) => state.setTempSize);
+  const regenerateMaze = useMazeStore((state) => state.regenerateMaze);
+  const resetMaze = useMazeStore((state) => state.resetMaze);
+  const decrementTime = useMazeStore((state) => state.decrementTime);
+  const addScore = useMazeStore((state) => state.addScore);
 
   useEffect(() => {
-    if (score > highscore) {
-      localStorage.setItem("highscore", String(score));
-      setHighscore(score);
-    }
-  }, [score, highscore]);
-
-  useEffect(() => {
+    if (isVictory || isGameOver) return;
     const interval = setInterval(() => {
-      setTime((prevTime) => prevTime + 1);
+      decrementTime();
     }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+    return () => clearInterval(interval);
+  }, [isVictory, isGameOver, decrementTime]);
 
   useEffect(() => {
     if (isVictory) {
-      setScore((prevScore) => prevScore + mazeSize[0]);
+      addScore(mazeSize[0]);
     }
-  }, [isVictory, mazeSize]);
+  }, [isVictory, mazeSize, addScore]);
 
-  const handleClick = useCallback(() => {
-    const size = Math.min(50, Math.max(2, tempMazeSize));
-    setMazeSize([size, size]);
-    setTime(0);
-    const requestId = Math.floor(Math.random() * 10000) + 1;
-    onInputChange([[size, size], requestId]);
-  }, [tempMazeSize, onInputChange]);
-
-  const handleInputChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.trim();
-    if (value === "") {
-      setTempMazeSize(2);
-      return;
-    }
-    const parsed = Number(value);
-    if (!Number.isNaN(parsed)) {
-      if (parsed > 50) {
-        setTempMazeSize(50);
-      } else {
-        setTempMazeSize(parsed);
+  const handleInputChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value.trim();
+      if (value === "") {
+        setTempSize(2);
+        return;
       }
-    }
-  }, []);
+      const parsed = Number(value);
+      if (!Number.isNaN(parsed)) {
+        setTempSize(parsed);
+      }
+    },
+    [setTempSize]
+  );
 
-  const handleInputBlur = useCallback(() => {
-    if (tempMazeSize < 2) {
-      setTempMazeSize(2);
-    } else if (tempMazeSize > 50) {
-      setTempMazeSize(50);
-    }
-  }, [tempMazeSize]);
+  const handleSliderChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setTempSize(Number(e.target.value));
+    },
+    [setTempSize]
+  );
 
-  const handleSliderChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setTempMazeSize(Number(e.target.value));
-  }, []);
+  const isLocked = isVictory || isGameOver;
+
+  const timerColorClass =
+    timeLeft <= 10
+      ? "text-rose-500 border-rose-500 animate-pulse bg-rose-950/20"
+      : "text-emerald-400 border-emerald-500/40 bg-[var(--color-surface)]";
 
   return (
     <div className="w-full shrink-0 p-[8px] lg:p-[16px] flex flex-col items-center justify-center gap-3 z-10 lg:w-80 lg:h-full lg:border-l lg:border-[var(--color-border)] lg:justify-start lg:gap-6 lg:overflow-y-auto">
@@ -81,12 +71,12 @@ function Controls({ onInputChange, isVictory }: ControlsProps) {
             type="number"
             min={2}
             max={50}
-            className="w-16 px-2 py-0.5 outline-none bg-[var(--color-surface)] border-b-2 border-[var(--color-accent)] text-center text-body text-[var(--color-content)]"
+            disabled={isLocked}
+            className="w-16 px-2 py-0.5 outline-none bg-[var(--color-surface)] border-b-2 border-[var(--color-accent)] text-center text-body text-[var(--color-content)] disabled:opacity-50 disabled:cursor-not-allowed"
             id="mazeSize"
             name="mazeSize"
-            value={tempMazeSize}
+            value={tempSize}
             onChange={handleInputChange}
-            onBlur={handleInputBlur}
           />
         </div>
 
@@ -95,27 +85,42 @@ function Controls({ onInputChange, isVictory }: ControlsProps) {
             type="range"
             min={2}
             max={50}
-            value={tempMazeSize}
+            disabled={isLocked}
+            value={tempSize}
             onChange={handleSliderChange}
-            className="w-full accent-[var(--color-accent)] cursor-pointer"
+            className="w-full accent-[var(--color-accent)] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
 
-        <button
-          type="button"
-          className="cursor-pointer bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-black text-body font-semibold px-5 py-1.5 rounded transition-colors w-full max-w-xs"
-          onClick={handleClick}
-        >
-          Generate
-        </button>
+        <div className="flex items-center gap-2 w-full max-w-xs">
+          <button
+            type="button"
+            disabled={isLocked}
+            className="flex-1 cursor-pointer bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-black text-body font-semibold px-4 py-1.5 rounded transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={regenerateMaze}
+          >
+            <RefreshCw className="w-4 h-4" />
+            Regenerate
+          </button>
+          <button
+            type="button"
+            disabled={isLocked}
+            className="cursor-pointer bg-[var(--color-surface)] hover:bg-[var(--color-border)] border border-[var(--color-border)] text-[var(--color-content)] text-body font-semibold px-3 py-1.5 rounded transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={resetMaze}
+            title="Reset Position"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Reset
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 lg:flex-col lg:w-full lg:max-w-xs lg:gap-3">
         <div
           id="time"
-          className="px-3 py-1.5 text-center rounded text-caption font-semibold bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-content)] lg:w-full"
+          className={`px-3 py-1.5 text-center rounded text-caption font-semibold border transition-colors lg:w-full ${timerColorClass}`}
         >
-          Time: {time}s
+          Time: {timeLeft}s
         </div>
         <div
           id="score"
