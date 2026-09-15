@@ -19,7 +19,7 @@ function App() {
   return (
     <div className="flex flex-col h-screen w-screen bg-[var(--color-canvas)] text-[var(--color-content)] overflow-hidden">
       <Header />
-      <main className="flex-1 flex flex-col items-center justify-center min-h-0 w-full overflow-hidden">
+      <main className="flex-1 flex flex-col lg:flex-row-reverse items-center justify-between min-h-0 w-full overflow-hidden">
         <Controls onInputChange={handleInputChange} isVictory={isVictory} />
         <Playground inputData={data} onVictory={handleVictory} />
       </main>

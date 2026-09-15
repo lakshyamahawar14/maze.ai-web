@@ -49,13 +49,15 @@ function Playground({ inputData, onVictory }: PlaygroundProps) {
     const rowSize = mazeSizeRef.current[0];
     const colSize = mazeSizeRef.current[1];
 
-    const margin = Math.max(8, Math.floor(Math.min(width, height) * 0.04));
-    const maxAvailableWidth = Math.max(10, width - margin * 2);
-    const maxAvailableHeight = Math.max(10, height - margin * 2);
+    const weight = rowSize > 35 ? 1 : 2;
+    const boundaryBuffer = weight * 2;
+
+    const availableWidth = Math.max(10, width - boundaryBuffer);
+    const availableHeight = Math.max(10, height - boundaryBuffer);
 
     const offset = Math.max(
       2,
-      Math.floor(Math.min(maxAvailableWidth / colSize, maxAvailableHeight / rowSize))
+      Math.floor(Math.min(availableWidth / colSize, availableHeight / rowSize))
     );
 
     const totalWidth = colSize * offset;
@@ -317,7 +319,7 @@ function Playground({ inputData, onVictory }: PlaygroundProps) {
   return (
     <div
       ref={containerRef}
-      className="flex-1 w-full h-full p-2 relative overflow-hidden min-h-0 bg-[var(--color-canvas)]"
+      className="flex-1 w-full h-full p-[8px] lg:p-[16px] relative overflow-hidden min-h-0 bg-[var(--color-canvas)]"
     />
   );
 }
