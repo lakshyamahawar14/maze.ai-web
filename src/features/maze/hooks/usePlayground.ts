@@ -17,6 +17,7 @@ export function usePlayground() {
   const isGameOver = useMazeStore((state) => state.isGameOver);
   const hasStarted = useMazeStore((state) => state.hasStarted);
   const isSolving = useMazeStore((state) => state.isSolving);
+  const playerTrail = useMazeStore((state) => state.playerTrail);
   const solutionPath = useMazeStore((state) => state.solutionPath);
   const revealedSolutionCount = useMazeStore((state) => state.revealedSolutionCount);
   const timeLeft = useMazeStore((state) => state.timeLeft);
@@ -26,7 +27,7 @@ export function usePlayground() {
   const setVictory = useMazeStore((state) => state.setVictory);
   const nextLevel = useMazeStore((state) => state.nextLevel);
   const playAgain = useMazeStore((state) => state.playAgain);
-  const incrementMoveCount = useMazeStore((state) => state.incrementMoveCount);
+  const recordPlayerMove = useMazeStore((state) => state.recordPlayerMove);
 
   const playerGridRef = useRef<[number, number]>([0, 0]);
   const mazeSizeRef = useRef<[number, number]>([MAZE_CONFIG.DEFAULT_SIZE, MAZE_CONFIG.DEFAULT_SIZE]);
@@ -212,6 +213,18 @@ export function usePlayground() {
         const { startX, startY, offset } = layoutMetricsRef.current;
         if (offset <= 0) return;
 
+        if (hasStarted && playerTrail.length > 1) {
+          const trailDotRadius = Math.max(2, Math.floor(offset / 4.5));
+          p.noStroke();
+          p.fill(234, 179, 8);
+          for (let idx = 0; idx < playerTrail.length - 1; idx++) {
+            const [tc, tr] = playerTrail[idx];
+            const tx = startX + tc * offset + Math.floor(offset / 2);
+            const ty = startY + tr * offset + Math.floor(offset / 2);
+            p.ellipse(tx, ty, trailDotRadius, trailDotRadius);
+          }
+        }
+
         if (solutionPath.length > 0 && revealedSolutionCount > 0) {
           const dotRadius = Math.max(2, Math.floor(offset / 4));
           p.noStroke();
@@ -265,7 +278,16 @@ export function usePlayground() {
       instance.remove();
       p5InstanceRef.current = null;
     };
-  }, [mazeSeed, mazeSize, rebuildMazeGeometry, getContentDimensions, solutionPath, revealedSolutionCount]);
+  }, [
+    mazeSeed,
+    mazeSize,
+    rebuildMazeGeometry,
+    getContentDimensions,
+    hasStarted,
+    playerTrail,
+    solutionPath,
+    revealedSolutionCount,
+  ]);
 
   const movePlayer = useCallback(
     (direction: "up" | "down" | "left" | "right") => {
@@ -303,7 +325,7 @@ export function usePlayground() {
 
       if (moved) {
         playerGridRef.current = [col, row];
-        incrementMoveCount();
+        recordPlayerMove(col, row);
         soundManager.playMoveSound();
 
         if (row === currentMazeSize[0] - 1 && col === currentMazeSize[1] - 1) {
@@ -311,7 +333,7 @@ export function usePlayground() {
         }
       }
     },
-    [hasStarted, isVictory, isGameOver, isSolving, incrementMoveCount, setVictory]
+    [hasStarted, isVictory, isGameOver, isSolving, recordPlayerMove, setVictory]
   );
 
   useEffect(() => {

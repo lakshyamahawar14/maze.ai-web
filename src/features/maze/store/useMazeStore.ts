@@ -15,12 +15,13 @@ interface MazeState {
   lastEarned: number;
   mazeSeed: number;
   resetKey: number;
+  playerTrail: [number, number][];
   solutionPath: [number, number][];
   revealedSolutionCount: number;
 
   setTempSize: (size: number) => void;
   startGame: () => void;
-  incrementMoveCount: () => void;
+  recordPlayerMove: (col: number, row: number) => void;
   regenerateMaze: () => void;
   resetMaze: () => void;
   nextLevel: () => void;
@@ -46,6 +47,7 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
   lastEarned: 0,
   mazeSeed: 1,
   resetKey: 0,
+  playerTrail: [[0, 0]],
   solutionPath: [],
   revealedSolutionCount: 0,
 
@@ -55,9 +57,7 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
     }),
 
   startGame: () => {
-    const size = get().tempSize;
     set({
-      mazeSize: [size, size],
       hasStarted: true,
       timeLeft: MAZE_CONFIG.INITIAL_TIME_SECONDS,
       isVictory: false,
@@ -65,12 +65,30 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       isSolving: false,
       solutionPath: [],
       revealedSolutionCount: 0,
+      playerTrail: [[0, 0]],
       moveCount: 0,
     });
   },
 
-  incrementMoveCount: () =>
-    set((state: MazeState) => ({ moveCount: state.moveCount + 1 })),
+  recordPlayerMove: (col: number, row: number) => {
+    set((state: MazeState) => {
+      const trail = [...state.playerTrail];
+      const existingIdx = trail.findIndex(([c, r]) => c === col && r === row);
+
+      if (existingIdx !== -1) {
+        return {
+          playerTrail: trail.slice(0, existingIdx + 1),
+          moveCount: state.moveCount + 1,
+        };
+      }
+
+      trail.push([col, row]);
+      return {
+        playerTrail: trail,
+        moveCount: state.moveCount + 1,
+      };
+    });
+  },
 
   regenerateMaze: () => {
     const size = get().tempSize;
@@ -83,6 +101,7 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       isSolving: false,
       moveCount: 0,
       lastEarned: 0,
+      playerTrail: [[0, 0]],
       solutionPath: [],
       revealedSolutionCount: 0,
       mazeSeed: Date.now() + Math.random(),
@@ -99,6 +118,7 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       isSolving: false,
       moveCount: 0,
       lastEarned: 0,
+      playerTrail: [[0, 0]],
       solutionPath: [],
       revealedSolutionCount: 0,
       resetKey: state.resetKey + 1,
@@ -118,6 +138,7 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       isSolving: false,
       moveCount: 0,
       lastEarned: 0,
+      playerTrail: [[0, 0]],
       solutionPath: [],
       revealedSolutionCount: 0,
       mazeSeed: Date.now() + Math.random(),
@@ -137,6 +158,7 @@ export const useMazeStore = create<MazeState>()((set, get) => ({
       isSolving: false,
       moveCount: 0,
       lastEarned: 0,
+      playerTrail: [[0, 0]],
       solutionPath: [],
       revealedSolutionCount: 0,
       mazeSeed: Date.now() + Math.random(),

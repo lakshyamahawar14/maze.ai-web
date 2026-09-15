@@ -86,13 +86,12 @@ function Controls() {
   }, [hasStarted, isVictory, isGameOver, isSolving, mazeSize, setSolutionPath, setIsSolving]);
 
   const isLocked = isVictory || isGameOver || isSolving;
-  const canPlay = !hasStarted && !isLocked;
   const canReset = hasStarted && !isLocked;
-  const canSolve = canPlay;
+  const canSolve = !hasStarted && !isLocked;
 
   const timerColorClass =
     timeLeft <= MAZE_CONFIG.WARNING_TIME_THRESHOLD
-      ? "text-rose-500 border-rose-500 animate-pulse bg-rose-950/20"
+      ? "text-rose-500 border-rose-500 bg-rose-950/20"
       : "text-emerald-400 border-emerald-500/40 bg-[var(--color-surface)]";
 
   return (
@@ -100,7 +99,7 @@ function Controls() {
       <div className="flex flex-col items-center w-full gap-3">
         <div className="flex items-center justify-between w-full max-w-xs gap-3">
           <label htmlFor="mazeSize" className="text-body font-medium text-[var(--color-content)]">
-            Size ({MAZE_CONFIG.MIN_SIZE}-{MAZE_CONFIG.MAX_SIZE}):
+            Maze Size
           </label>
           <input
             type="number"
@@ -128,29 +127,21 @@ function Controls() {
         </div>
 
         <div className="flex flex-col items-center gap-2 w-full max-w-xs">
-          {canPlay && (
-            <button
-              type="button"
-              className="w-full cursor-pointer bg-[var(--color-btn-play)] hover:bg-[var(--color-btn-play-hover)] text-black text-body font-bold px-4 py-2 rounded flex items-center justify-center gap-2"
-              onClick={startGame}
-            >
-              <Play className="w-4 h-4 fill-current" />
-              Start Game
-            </button>
-          )}
-
-          {hasStarted && (
-            <div className="w-full bg-[var(--color-surface-subtle)] border border-[var(--color-border)] text-[var(--color-content)] text-body font-bold px-4 py-2 rounded flex items-center justify-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              Playing...
-            </div>
-          )}
+          <button
+            type="button"
+            disabled={hasStarted || isLocked}
+            className="w-full cursor-pointer bg-[var(--color-btn-play)] text-black text-body font-bold px-4 py-2 rounded flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={startGame}
+          >
+            <Play className="w-4 h-4 fill-current" />
+            {hasStarted ? "Playing..." : "Play"}
+          </button>
 
           <div className="flex items-center gap-2 w-full">
             <button
               type="button"
               disabled={isLocked}
-              className="flex-1 cursor-pointer bg-[var(--color-btn-new)] hover:bg-[var(--color-btn-new-hover)] text-black text-body font-bold px-3 py-1.5 rounded flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 cursor-pointer bg-[var(--color-btn-new)] text-black text-body font-bold px-3 py-1.5 rounded flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={regenerateMaze}
             >
               <RefreshCw className="w-4 h-4" />
@@ -160,7 +151,7 @@ function Controls() {
             {canReset && (
               <button
                 type="button"
-                className="flex-1 cursor-pointer bg-[var(--color-btn-reset)] hover:bg-[var(--color-btn-reset-hover)] text-white text-body font-bold px-3 py-1.5 rounded flex items-center justify-center gap-1.5"
+                className="flex-1 cursor-pointer bg-[var(--color-btn-reset)] text-white text-body font-bold px-3 py-1.5 rounded flex items-center justify-center gap-1.5"
                 onClick={resetMaze}
               >
                 <RotateCcw className="w-4 h-4" />
@@ -171,7 +162,7 @@ function Controls() {
             {canSolve && (
               <button
                 type="button"
-                className="flex-1 cursor-pointer bg-[var(--color-btn-solution)] hover:bg-[var(--color-btn-solution-hover)] text-black text-body font-bold px-3 py-1.5 rounded flex items-center justify-center gap-1.5"
+                className="flex-1 cursor-pointer bg-[var(--color-btn-solution)] text-black text-body font-bold px-3 py-1.5 rounded flex items-center justify-center gap-1.5"
                 onClick={handleSolve}
               >
                 <Lightbulb className="w-4 h-4" />
@@ -185,23 +176,23 @@ function Controls() {
       <div className="flex items-center gap-2 lg:flex-col lg:w-full lg:max-w-xs lg:gap-3">
         <div
           id="time"
-          className={`px-3 py-2 text-center rounded border transition-colors lg:w-full flex items-center justify-between ${timerColorClass}`}
+          className={`px-3 py-2 text-center rounded border lg:w-full flex items-center justify-between ${timerColorClass}`}
         >
-          <span className="text-caption font-medium tracking-wide uppercase">Time</span>
+          <span className="text-caption font-medium tracking-wide">Time</span>
           <span className="font-game font-bold text-stat">{timeLeft}s</span>
         </div>
         <div
           id="score"
           className="px-3 py-2 text-center rounded bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-content)] lg:w-full flex items-center justify-between"
         >
-          <span className="text-caption font-medium tracking-wide uppercase text-[var(--color-content-muted)]">Score</span>
+          <span className="text-caption font-medium tracking-wide text-[var(--color-content-muted)]">Score</span>
           <span className="font-game font-bold text-stat">{score}</span>
         </div>
         <div
           id="highscore"
           className="px-3 py-2 text-center rounded bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-content)] lg:w-full flex items-center justify-between"
         >
-          <span className="text-caption font-medium tracking-wide uppercase text-[var(--color-content-muted)]">Highscore</span>
+          <span className="text-caption font-medium tracking-wide text-[var(--color-content-muted)]">Highscore</span>
           <span className="font-game font-bold text-stat">{highscore}</span>
         </div>
       </div>
