@@ -182,12 +182,16 @@ export function usePlayground() {
   }, []);
 
   const getContentDimensions = useCallback((el: HTMLElement) => {
+    const rect = el.getBoundingClientRect();
     const style = window.getComputedStyle(el);
     const paddingX = parseFloat(style.paddingLeft || "0") + parseFloat(style.paddingRight || "0");
     const paddingY = parseFloat(style.paddingTop || "0") + parseFloat(style.paddingBottom || "0");
 
-    const w = Math.max(0, Math.floor(el.clientWidth - paddingX));
-    const h = Math.max(0, Math.floor(el.clientHeight - paddingY));
+    const rawW = rect.width > 0 ? rect.width : el.clientWidth;
+    const rawH = rect.height > 0 ? rect.height : el.clientHeight;
+
+    const w = Math.max(0, Math.floor(rawW - paddingX));
+    const h = Math.max(0, Math.floor(rawH - paddingY));
 
     return { w, h };
   }, []);
@@ -200,6 +204,8 @@ export function usePlayground() {
       p5InstanceRef.current.remove();
       p5InstanceRef.current = null;
     }
+
+    let isMounted = true;
 
     const sketch = (p: p5) => {
       let mazeBuffer: p5.Graphics;
@@ -218,6 +224,9 @@ export function usePlayground() {
         mazeBuffer = p.createGraphics(w, h);
         mazeBuffer.clear();
 
+        const ctx = mazeBuffer.drawingContext as CanvasRenderingContext2D;
+        if (!ctx) return;
+
         const currentMazeSize = mazeSizeRef.current;
         const weight = Math.max(
           1,
@@ -226,15 +235,12 @@ export function usePlayground() {
             : MAZE_CONFIG.STROKE_WEIGHT_DEFAULT
         );
 
-        const ctx = mazeBuffer.drawingContext as CanvasRenderingContext2D;
         const lines = linesRef.current;
-        if (!ctx || lines.length === 0) return;
-
         for (let i = 0; i < lines.length; i++) {
           const l = lines[i];
           if (!l) continue;
           const isHorizontal = l.y1 === l.y2;
-          const variantIndex = i % 5;
+          const variantIndex = i % 10;
 
           if (isHorizontal) {
             const segLength = Math.abs(l.x2 - l.x1);
@@ -265,6 +271,15 @@ export function usePlayground() {
         canvas.parent(el);
         canvas.style("display", "block");
         refreshBuffer();
+
+        requestAnimationFrame(() => {
+          if (!isMounted) return;
+          const current = getContentDimensions(el);
+          if (current.w > 0 && current.h > 0 && (current.w !== p.width || current.h !== p.height)) {
+            p.resizeCanvas(current.w, current.h);
+            refreshBuffer();
+          }
+        });
       };
 
       p.draw = () => {
@@ -318,7 +333,7 @@ export function usePlayground() {
             Math.floor(offset / MAZE_CONFIG.PLAYER_SIZE_DIVISOR)
           );
           p.noStroke();
-          p.fill(255);
+          p.fill(220, 38, 38);
           p.ellipse(px, py, playerSize, playerSize);
         }
       };
@@ -336,7 +351,7 @@ export function usePlayground() {
     p5InstanceRef.current = instance;
 
     const resizeObserver = new ResizeObserver(() => {
-      if (!el) return;
+      if (!el || !isMounted) return;
       const { w, h } = getContentDimensions(el);
       if (w > 0 && h > 0 && (instance.width !== w || instance.height !== h)) {
         instance.resizeCanvas(w, h);
@@ -347,6 +362,7 @@ export function usePlayground() {
     resizeObserver.observe(el);
 
     return () => {
+      isMounted = false;
       resizeObserver.disconnect();
       instance.remove();
       p5InstanceRef.current = null;

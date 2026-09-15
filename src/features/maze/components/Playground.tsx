@@ -17,10 +17,10 @@ function Playground() {
   return (
     <div
       ref={containerRef}
-      className="flex-1 w-full h-full flex items-center justify-center p-[8px] lg:p-[16px] relative overflow-hidden min-h-0 bg-[var(--color-canvas)]"
+      className="flex-1 w-full h-full flex items-center justify-center p-[8px] lg:p-[16px] relative overflow-hidden min-h-0 bg-transparent"
     >
       {isVictory && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--color-canvas)]/40 backdrop-blur-[1px]">
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
           <div className="flex flex-col items-center gap-4 p-6 rounded border border-emerald-500/30 bg-[var(--color-surface)] shadow-2xl max-w-xs w-full mx-4 text-center">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
               <Trophy className="w-6 h-6" />
@@ -50,7 +50,7 @@ function Playground() {
       )}
 
       {isGameOver && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--color-canvas)]/40 backdrop-blur-[1px]">
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
           <div className="flex flex-col items-center gap-4 p-6 rounded border border-rose-500/30 bg-[var(--color-surface)] shadow-2xl max-w-xs w-full mx-4 text-center">
             <div className="w-12 h-12 rounded-full flex items-center justify-center bg-rose-500/10 text-rose-500 border border-rose-500/30">
               <AlertTriangle className="w-6 h-6" />

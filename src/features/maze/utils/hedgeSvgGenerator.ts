@@ -16,7 +16,7 @@ export interface PrebakedStamp {
 function createHedgeStamp(isHoriz: boolean, variant: number): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   const rand = pseudoRandom((variant + 1) * 7919);
-  const steps = 16;
+  const steps = 24;
   const baseLen = 100;
   const baseThick = 2;
 
@@ -27,23 +27,26 @@ function createHedgeStamp(isHoriz: boolean, variant: number): HTMLCanvasElement 
   if (!ctx) return canvas;
 
   const stepSize = baseLen / steps;
-  const maxJitter = 0.45;
+  const maxJitter = 0.85;
 
   const topPoints: [number, number][] = [];
   const bottomPoints: [number, number][] = [];
 
   for (let i = 0; i <= steps; i++) {
     const pos = i * stepSize;
-    const wave = Math.sin(i * 0.75) * 0.25;
-    const noiseTop = (rand() - 0.5) * maxJitter + wave;
-    const noiseBottom = (rand() - 0.5) * maxJitter - wave;
+    const wave1 = Math.sin(i * 0.9 + variant * 1.3) * 0.45;
+    const wave2 = Math.cos(i * 2.1 - variant * 0.7) * 0.25;
+    const microNoise = (rand() - 0.5) * maxJitter;
+
+    const noiseTop = microNoise + wave1 + wave2;
+    const noiseBottom = (rand() - 0.5) * maxJitter - wave1 + wave2;
 
     if (isHoriz) {
-      topPoints.push([pos, Math.max(0, noiseTop)]);
-      bottomPoints.push([pos, baseThick + Math.min(0, noiseBottom)]);
+      topPoints.push([pos, Math.max(-0.2, noiseTop)]);
+      bottomPoints.push([pos, baseThick + Math.min(0.2, noiseBottom)]);
     } else {
-      topPoints.push([Math.max(0, noiseTop), pos]);
-      bottomPoints.push([baseThick + Math.min(0, noiseBottom), pos]);
+      topPoints.push([Math.max(-0.2, noiseTop), pos]);
+      bottomPoints.push([baseThick + Math.min(0.2, noiseBottom), pos]);
     }
   }
 
@@ -76,7 +79,7 @@ function createHedgeStamp(isHoriz: boolean, variant: number): HTMLCanvasElement 
   ctx.fill(hedgePath);
 
   ctx.strokeStyle = "#dbeafe";
-  ctx.lineWidth = 0.35;
+  ctx.lineWidth = 0.4;
   ctx.lineCap = "round";
   ctx.globalAlpha = 0.75;
   ctx.stroke(snowPath);
@@ -91,6 +94,11 @@ const PREBAKED_STAMPS = {
     createHedgeStamp(true, 2),
     createHedgeStamp(true, 3),
     createHedgeStamp(true, 4),
+    createHedgeStamp(true, 5),
+    createHedgeStamp(true, 6),
+    createHedgeStamp(true, 7),
+    createHedgeStamp(true, 8),
+    createHedgeStamp(true, 9),
   ],
   vertical: [
     createHedgeStamp(false, 0),
@@ -98,6 +106,11 @@ const PREBAKED_STAMPS = {
     createHedgeStamp(false, 2),
     createHedgeStamp(false, 3),
     createHedgeStamp(false, 4),
+    createHedgeStamp(false, 5),
+    createHedgeStamp(false, 6),
+    createHedgeStamp(false, 7),
+    createHedgeStamp(false, 8),
+    createHedgeStamp(false, 9),
   ],
 };
 
@@ -105,6 +118,6 @@ export function getHedgeStamp(
   orientation: "horizontal" | "vertical",
   variantIndex: number
 ): HTMLCanvasElement {
-  const idx = Math.abs(variantIndex) % 5;
+  const idx = Math.abs(variantIndex) % 10;
   return PREBAKED_STAMPS[orientation][idx];
 }
