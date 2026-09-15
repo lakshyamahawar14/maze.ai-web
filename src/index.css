@@ -1,15 +1,48 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+@source "./**/*.{ts,tsx}";
 
-body{
-    background-color: rgb(30, 30, 30);
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --color-canvas: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-subtle: #141414;
+  --color-border: #262626;
+
+  --color-content: #ffffff;
+  --color-content-muted: #a3a3a3;
+
+  --color-accent: #00e5ff;
+  --color-accent-hover: #00cce6;
+
+  --text-title: 1.5rem;
+  --text-title--line-height: 2rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.25rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
 }
 
-*{
-    color: rgb(0,255,75);
-    font-family: 'Poppins', sans-serif;
+@layer base {
+  *, ::before, ::after {
+    box-sizing: border-box;
+    font-family: var(--font-sans);
+  }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: var(--color-canvas);
+    color: var(--color-content);
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeSpeed;
+  }
 }
