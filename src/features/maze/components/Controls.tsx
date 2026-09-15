@@ -5,6 +5,7 @@ import { MAZE_CONFIG } from "../constants/config";
 import { findAStarPath } from "../algorithms/astar";
 import { soundManager } from "../utils/sound";
 import { KruskalMaze } from "../algorithms/kruskal";
+import logo from "../../../assets/logo.ico";
 
 function Controls() {
   const mazeSize = useMazeStore((state) => state.mazeSize);
@@ -96,6 +97,21 @@ function Controls() {
 
   return (
     <div className="w-full shrink-0 p-[8px] lg:p-[16px] flex flex-col items-center justify-center gap-3 z-10 lg:w-80 lg:h-full lg:border-l lg:border-[var(--color-border)] lg:justify-start lg:gap-6 lg:overflow-y-auto">
+      <header className="w-full flex items-center justify-center py-2 shrink-0">
+        <div className="flex items-center gap-1">
+          <img
+            src={logo}
+            alt="Maze.AI Logo"
+            className="w-8 h-8 object-contain"
+            width={32}
+            height={32}
+          />
+          <h1 className="text-title font-bold tracking-wider">
+            Maze<span className="text-[var(--color-accent)]">.AI</span>
+          </h1>
+        </div>
+      </header>
+
       <div className="flex flex-col items-center w-full gap-3">
         <div className="flex items-center justify-between w-full max-w-xs gap-3">
           <label htmlFor="mazeSize" className="text-body font-medium text-[var(--color-content)]">

@@ -9,16 +9,16 @@
   --font-sans: "Geist", system-ui, -apple-system, sans-serif;
   --font-game: "Chakra Petch", monospace;
 
-  --color-canvas: #000000;
-  --color-surface: #0a0a0a;
-  --color-surface-subtle: #141414;
-  --color-border: #262626;
+  --color-canvas: #121212;
+  --color-surface: #1e1e1e;
+  --color-surface-subtle: #262626;
+  --color-border: #383838;
 
   --color-content: #ffffff;
   --color-content-muted: #a3a3a3;
 
-  --color-accent: #00e5ff;
-  --color-accent-hover: #00cce6;
+  --color-accent: #10b981;
+  --color-accent-hover: #059669;
 
   --color-btn-play: #10b981;
   --color-btn-play-hover: #059669;

@@ -71,14 +71,14 @@ function createHedgeStamp(isHoriz: boolean, variant: number): HTMLCanvasElement 
     isHoriz ? 0 : baseThick,
     isHoriz ? baseThick : 0
   );
-  grad.addColorStop(0, "#1b4d2e");
-  grad.addColorStop(0.5, "#143922");
-  grad.addColorStop(1, "#0a1d12");
+  grad.addColorStop(0, "#2e6f40");
+  grad.addColorStop(0.5, "#225833");
+  grad.addColorStop(1, "#133820");
 
   ctx.fillStyle = grad;
   ctx.fill(hedgePath);
 
-  ctx.strokeStyle = "#dbeafe";
+  ctx.strokeStyle = "#eafaf1";
   ctx.lineWidth = 0.4;
   ctx.lineCap = "round";
   ctx.globalAlpha = 0.75;
